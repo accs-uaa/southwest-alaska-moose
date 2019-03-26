@@ -35,4 +35,3 @@ def arcpy_geoprocessing(geoprocessing_function, check_output = True, check_input
     except arcpy.ExecuteError as err:
         print(arcpy.GetMessages())
         quit()
-    return out_process
