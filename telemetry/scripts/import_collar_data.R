@@ -14,7 +14,7 @@ library(readxl)
 # Data were downloaded from Vectronic on 22 Mar 2019
 # Data for each moose are stored as separate .csv files
 
-data.files <-list.files(file.path('collar_data'),full.names = TRUE)
+data.files <-list.files(file.path('collar_data/vectronic'),full.names = TRUE)
 
 
 # Read in each file and combined into single dataframe
