@@ -1,6 +1,9 @@
+# Last updated: 29 March 2019
+
 # Objective: Import data from GPS and VHF collars. Combine all data files into a single dataframe that can be used for analyses.
-# Author: A. Droghini (adroghini@alaska.edu), Alaska Center for Conservation Science
-# Last updated: 28 March 2019
+
+# Author: A. Droghini (adroghini@alaska.edu)
+#         Alaska Center for Conservation Science
 
 # Load required packages
 library(plyr)
@@ -31,10 +34,10 @@ for (i in 1:length(data.files)) {
   rename(RowID = No)
   
   if (i == 1) {
-    telem.data <- temp
+    gps.data <- temp
     
   } else {
-    telem.data <- rbind(telem.data, temp)
+    gps.data <- rbind(gps.data, temp)
   }
 }
 
@@ -42,10 +45,9 @@ for (i in 1:length(data.files)) {
 rm(f,i,temp,data.files)
 
 # Examine dataframe attributes
-names(telem.data)
-length(unique(telem.data$CollarID))
-unique(X3D_Error..m.)
-attach(telem.data)
+# names(gps.data)
+# length(unique(gps.data$CollarID))
+# unique(X3D_Error..m.)
 # Checked - CollarID and AnimalID have a 1:1 relationship
 
 # List of changes to make to dataframe:
@@ -64,7 +66,7 @@ attach(telem.data)
 drop.cols <- c("Origin", "Activity", "Sats", "X3D_Error..m.", "Main..V.", "Beacon..V.",
                "SCTS_Date", "SCTS_Time")
 
-telem.data <- telem.data %>% 
+gps.data <- gps.data %>% 
   select(-drop.cols) %>% 
   rename(Long_X = "Longitude..Â..", Lat_Y = "Latitude..Â..", Temp_C = "Temp..Â.C.",
          Height_m = "Height..m.") %>% 
@@ -80,7 +82,7 @@ vhf.data <- read_excel("collar_data/vhf_moose_data.xlsx")
 names(vhf.data)
 # For now, keep only "Flight_Date", "Moose_ID", "Lat_DD", "Lon_DD"
 # Add column to differentiate between VHF & GPS data
-# Rename columns to match with telem.data
+# Rename columns to match with gps.data
 # Get rid of entries with no lat or lon
 
 vhf.data <- vhf.data %>% 
@@ -91,7 +93,5 @@ vhf.data <- vhf.data %>%
   filter(!is.na(Lat_Y) | !is.na(Long_X))
 
 # Final merge
-telem.data <- rbind.fill(telem.data,vhf.data)
-
-rm(vhf.data)
+telem.data <- rbind.fill(gps.data,vhf.data)
 
