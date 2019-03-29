@@ -92,6 +92,15 @@ vhf.data <- vhf.data %>%
   mutate(Collar_Type = "VHF") %>% 
   filter(!is.na(Lat_Y) | !is.na(Long_X))
 
+# Fix typo for longitude of one point (identified in GIS)
+outlier <- which(vhf.data$Long_X=="-58.89396")
+vhf.data[outlier,]$Long_X <- -158.89396
+rm(outlier)
+
+# Remove outlier in Bristol Bay
+vhf.data <- vhf.data %>% 
+  filter(!(Long_X=="-157.9081" & vhf.data$Lat_Y=="58.038"))
+
 # Final merge
 telem.data <- rbind.fill(gps.data,vhf.data)
 

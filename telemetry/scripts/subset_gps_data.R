@@ -5,27 +5,39 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
+# Load required libraries
+library(plyr)
+library(tidyverse)
+library(lubridate)
+
+# Only looking at summer data (from May to October, inclusively)
+summer.data <- gps.data %>% 
+  mutate(Month = month(LMT_Date)) %>% 
+  filter(Month >= 5 & Month <= 10) %>% 
+  select(-Month) %>% 
+  mutate(Week = paste(year(LMT_Date),week(LMT_Date),sep="-"))
+
 # Create Date/Time column
 # Convert to POSIX item
 Sys.setenv(TZ="GMT") 
 # DST-free timezone equivalent to UTC Date/Time columns
-gps.data$DateTime <- paste(gps.data$UTC_Date,gps.data$UTC_Time, sep=" ")
-gps.data$DateTime <- as.POSIXct(strptime(gps.data$DateTime, format="%Y-%m-%d %H:%M:%S",tz="GMT"))
+summer.data$DateTime <- paste(summer.data$UTC_Date,summer.data$UTC_Time, sep=" ")
+summer.data$DateTime <- as.POSIXct(strptime(summer.data$DateTime, format="%Y-%m-%d %H:%M:%S",tz="GMT"))
 
 # Calculate fix rate (time interval between two consecutive fixes)
 # Check for outliers
 # Fix rate should be 120 min (3 hours)
-for (i in 2:nrow(gps.data)) {
-  if (gps.data$CollarID[i] == gps.data$CollarID[i - 1]) {
-    gps.data$FixRate[i] <-
-      difftime(gps.data$DateTime[i], gps.data$DateTime[i - 1], units = "mins")
+for (i in 2:nrow(summer.data)) {
+  if (summer.data$CollarID[i] == summer.data$CollarID[i - 1]) {
+    summer.data$FixRate[i] <-
+      difftime(summer.data$DateTime[i], summer.data$DateTime[i - 1], units = "mins")
   }
 }
 
 rm(i)
 
 # Summarize Fix Rate results
-fix.summary <- gps.data %>%
+fix.summary <- summer.data %>%
   group_by(CollarID) %>%
   summarise(
     obs = length(CollarID),
@@ -37,54 +49,27 @@ fix.summary <- gps.data %>%
     min.fix = min(FixRate,na.rm=TRUE)
   )
 
-# At the very least, omit CollarIDs 30927, 30928
-# Very few fixes, highly variable fix rates. Collar malfunctions?
-gps.data <- gps.data %>% 
-  filter(!CollarID %in% c("30927", "30928"))
+# Remove rows with Time Since Fix < 100
+summer.data <- summer.data %>% 
+  filter(FixRate >=100)
 
-# Other collars aren't perfect but will do for now
+rm(fix.summary)
 
-
-## Subset to 24 hours
-
-# Add.start time to main df
-fix.summary <- fix.summary %>% 
-  select(CollarID,start.time)
-
-gps.data <- inner_join(gps.data,fix.summary,by="CollarID")
-
-# Convert start.time to POSIX
-gps.data$start.time <- as.POSIXct(strptime(gps.data$start.time, format="%Y-%m-%d %H:%M:%S",tz="GMT"))
-
-# For each row, calculate the difference between fix time & init time
-# For now, interested in keeping one fix rate every day
-# If fix rates were exactly one day apart, difference would be 1440 (24 h * 60 min)
-# Taking the difference between the Fix
-
-
-# Can overwrite FixRate column for this
-subset.data <- gps.data %>% 
-  mutate(FixRate = difftime(DateTime, start.time, units = "mins"),
-         DaysSince = difftime(UTC_Date,as.Date(start.time),units="days"),
-         FR_1440 = case_when(as.numeric(FixRate) == 0 ~ 0,
-                             TRUE ~ abs(as.numeric(FixRate)- 1440*as.numeric(DaysSince))))
-
-min.time <- subset.data %>% 
-  group_by(CollarID,UTC_Date) %>% 
-  summarize(
-    min.time=min(FR_1440))
-
-# Select only rows identified by min.time
-subset.data <- semi_join(subset.data,min.time,by=c("CollarID","UTC_Date","FR_1440"="min.time"))
-
-# FR_1440 column can be used to identify missed fix rates
-# Given formula above, FR_1440 should be close to zero
-# 6 outliers, but ignore for now
-
-subset.data <- subset.data %>% 
-  select(-c(FixRate,DaysSince,FR_1440))
-
-rm(min.time,fix.summary)
+# Keep one fix rate per day per moose, selected at random
+# Not a perfect way to do it, but super quick to code :-)
+# Becomes nightmarish real fast..
+subset.gps <- summer.data %>% 
+  group_by(CollarID,LMT_Date) %>% 
+  sample_n(1)
 
 # Export file for plotting in GIS
-write.csv(subset.data,"collar_data/subset_data.csv",row.names=FALSE)
+write.csv(subset.gps,"collar_data/subset_gps_data.csv",row.names=FALSE)
+
+# Merge with vhf for Timm
+names(subset.gps)
+subset.gps <- subset.gps %>% 
+  select(CollarID, AnimalID,LMT_Date,LMT_Time,Lat_Y,
+         Long_X,DateTime,Collar_Type,Week)
+
+subset.all <- plyr::rbind.fill(subset.gps,subset.vhf)
+write.csv(subset.gps,"collar_data/subset_combined.csv",row.names=FALSE)
