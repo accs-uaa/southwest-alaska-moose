@@ -48,3 +48,4 @@ rsconnect/
 
 # Ignore collar_data folder
 telemetry/collar_data
+*.Rproj
