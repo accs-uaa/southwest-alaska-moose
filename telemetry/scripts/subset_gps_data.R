@@ -72,4 +72,4 @@ subset.gps <- subset.gps %>%
          Long_X,DateTime,Collar_Type,Week)
 
 subset.all <- plyr::rbind.fill(subset.gps,subset.vhf)
-write.csv(subset.gps,"collar_data/subset_combined.csv",row.names=FALSE)
+write.csv(subset.all,"collar_data/subset_combined.csv",row.names=FALSE)
