@@ -31,11 +31,11 @@ This script must be executed on the outputs of the ArcGIS Pro script tool "Prepa
 ```{r inputs}
 # Set root directory
 drive = 'F:/'
-region = 'nuyakuk' # Change between nuyakuk and aleknagik
+region = 'aleknagik' # Change between nuyakuk and aleknagik
 root_directory = paste(drive, '/ACCS_Work/Projects/VegetationEcology/BristolBay_Vegetation/Project_GIS', sep='')
 # Define input folders
 watersheds_folder = paste(root_directory, '/Data_Output/prediction_grids/', region, sep='')
-environmental_folder = paste(root_directory, '/Data_Input/predictor_env', sep='')
+environmental_folder = paste(root_directory, '/Data_Input/predictor_env/partial', sep='')
 spectral_folder = paste(root_directory, '/Data_Input/predictor_img/mosaic_partial', sep='')
 # Define output folder
 output_folder = paste(root_directory, '/Data_Output/prediction_tables', sep='')
@@ -58,11 +58,11 @@ library(stringr)
 ```{r prepare_inputs}
 # Generate a list of all watersheds in the watersheds directory
 watersheds_list = list.files(watersheds_folder, pattern='shp$', full.names=TRUE)
-# Subset the watersheds list based on the list range
-watersheds_list = watersheds_list[list_range]
 watersheds_length = length(watersheds_list)
 # Generate a stack of all predictor variables
-predictors_all = list.files(predictors_folder, pattern='tif$', full.names=TRUE)
+predictors_env = list.files(environmental_folder, pattern='tif$', full.names=TRUE)
+predictors_img = list.files(spectral_folder, pattern='tif$', full.names=TRUE)
+predictors_all = c(predictors_env, predictors_img)
 predictor_stack = stack(predictors_all)
 ```
 
