@@ -1,4 +1,4 @@
-# Last updated: 24 May 2019
+# Last updated: 21 May 2019
 
 # Objective: Import data from GPS and VHF collars. Combine all data files into a single dataframe that can be used for analyses.
 
