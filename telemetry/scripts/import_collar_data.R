@@ -14,7 +14,8 @@ library(readxl)
 # Data were downloaded from Vectronic on 22 Mar 2019
 # Data for each moose are stored as separate .csv files
 
-data.files <-list.files(file.path('collar_data/vectronic'),full.names = TRUE,pattern=".csv")
+#data.files <-list.files(file.path('collar_data/vectronic'),full.names = TRUE,pattern=".csv")
+data.files <-list.files(file.path('collar_data'),full.names = TRUE,pattern=".csv")
 
 
 # Read in each file and combined into single dataframe
@@ -104,3 +105,6 @@ vhf.data <- vhf.data %>%
 # Final merge
 telem.data <- rbind.fill(gps.data,vhf.data)
 
+# Write the merged GPS and VHF collar data file to .csv for viewing
+# and prep for Movebank
+write.csv(telem.data, file="swmoose.telem.data.csv")
