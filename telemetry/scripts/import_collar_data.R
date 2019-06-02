@@ -107,4 +107,8 @@ telem.data <- rbind.fill(gps.data,vhf.data)
 
 # Write the merged GPS and VHF collar data file to .csv for viewing
 # and prep for Movebank
+
+#library(openxlsx)
+#write.xlsx(telem.data, "swmoose.telem.data.xlsx", colNames = TRUE)
+
 write.csv(telem.data, file="swmoose.telem.data.csv")
