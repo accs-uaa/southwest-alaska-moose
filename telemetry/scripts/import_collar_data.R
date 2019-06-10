@@ -135,6 +135,51 @@ telem.data <- telem.data %>%
   filter(Long_X < 0)
 
 head(telem.data)
+plot(telem.data$Long_X, telem.data$Lat_Y)
+
+## appears there are locations in Palmer and Anchorage taht need to be removed
+telem.data <- telem.data %>% 
+  filter(Lat_Y < 61)
+plot(telem.data$Long_X, telem.data$Lat_Y)
 
 #This file can be uploaded to Movebank
 write.csv(telem.data, file="swmoose.telem.data.csv")
+
+#Then, also need a metadata file that includes collar id, animal id, deployment date and end
+telem.data.meta <- telem.data %>% 
+  arrange(datetime) %>%
+  group_by(CollarID) %>% 
+  slice(1)
+
+telem.data.meta <- as.data.frame(telem.data.meta)
+
+#change datetime to deployment start date
+telem.data.meta <- telem.data.meta %>% 
+  rename(Deployment_start = datetime)
+
+#End of deployment, or rather, date of downloading collar data
+telem.data.end <- telem.data %>% 
+  arrange(desc(datetime)) %>%
+  group_by(CollarID) %>% 
+  slice(1)
+
+#change datetime to deployment end date
+telem.data.end <- telem.data.end %>% 
+  rename(Deployment_end = datetime)
+as.data.frame(telem.data.end)
+
+#Add column for deployment end date to metadata
+telem.data.meta <- telem.data.meta %>% 
+  mutate(Deployment_end = telem.data.end$Deployment_end)
+
+#View the data
+# We now have a metadata file that will help us identify 
+# which tags are deployed on which animals
+telem.data.meta
+
+#a list of all animals if want to call out specific animals
+#telem.data.meta$AnimalID
+
+#This metadata file can be uploaded to Movebank
+write.csv(telem.data.meta, file="swmoose.telem.metadata.csv")
+
