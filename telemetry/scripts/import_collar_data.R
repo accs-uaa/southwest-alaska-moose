@@ -105,10 +105,36 @@ vhf.data <- vhf.data %>%
 # Final merge
 telem.data <- rbind.fill(gps.data,vhf.data)
 
+#view data
+head(telem.data)
+
+
 # Write the merged GPS and VHF collar data file to .csv for viewing
 # and prep for Movebank
 
-#library(openxlsx)
-#write.xlsx(telem.data, "swmoose.telem.data.xlsx", colNames = TRUE)
+# Need to get date and time in one column
+library(lubridate)
 
+telem.data <- telem.data %>% 
+  mutate(datetime = as.POSIXct(paste(telem.data$UTC_Date, telem.data$UTC_Time), format="%Y-%m-%d %H:%M:%S"))
+
+telem.data <- telem.data %>% 
+  select(CollarID, AnimalID, datetime, Lat_Y, Long_X, Collar_Type, Temp_C, FixType)
+
+#Should check with ADF&G to determine if data collected in WGS94, NAD83, or other projection
+
+head(telem.data)
+summary(telem.data)
+
+#Just work with the GPS collar data
+telem.data <- telem.data %>% 
+  filter(Collar_Type == "GPS")
+
+# There are long's in the 13's, which is in Germany where collars manufactured. Remove.
+telem.data <- telem.data %>% 
+  filter(Long_X < 0)
+
+head(telem.data)
+
+#This file can be uploaded to Movebank
 write.csv(telem.data, file="swmoose.telem.data.csv")
