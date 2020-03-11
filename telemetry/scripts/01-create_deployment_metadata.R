@@ -63,4 +63,4 @@ deploy <- deploy %>%
 str(deploy)
 
 # Export as .csv + upload to Movebank
-write.csv(deploy,"deploymentMetadata.csv",row.names=FALSE)
+write.csv(deploy,"output/deploymentMetadata.csv",row.names=FALSE)
