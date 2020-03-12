@@ -1,10 +1,8 @@
 # Objective: Examine GPS data for issues: outliers, duplicates, and skips.
-
 # Last updated: 29 Jan 2020
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
-#         With code from P. Schuette and the AniMove 2019 workshop
 
 #### Load packages and data----
 library(tidyverse)
@@ -20,7 +18,9 @@ load("output/gps_raw.Rdata")
 # Projection will be addressed in later step
 
 gpsData <- gpsData %>% 
-  mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), format="%m/%d/%Y %I:%M:%S %p",tz="UTC"), CollarID = paste("M", gpsData$CollarID, sep=""))
+  mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), 
+                               format="%m/%d/%Y %I:%M:%S %p",tz="UTC"), 
+         CollarID = paste("M", gpsData$CollarID, sep=""))
 
 # Create unique row number for each device, according to date/time
 # Coerce back to dataframe (needed for move package)
@@ -99,7 +99,7 @@ rm(plotName,filePath,finalName,i)
 # Collars with time lag issues----
 subset(lagSummary, max > 2.05)$ids
 
-# M30927 & M30928 look like they've been redeployed. Sending an email to Kassie to confirm.
+# M30927 & M30928 were redeployed. Need to recode (done at a later step).
 
 # investigating... 103
 which(ids=="M30103")
@@ -251,46 +251,5 @@ for (i in 1:length(ids)){
   dev.off()
 }
 
-rm(plotName,filePath,finalName,i)
+rm(plotName,filePath,finalName,i,ids)
 dev.off()
-
-# Not entirely sure how to use the 
-
-#Then, also need a metadata file that includes collar id, animal id, deployment date and end
-telem.data.meta <- telem.data %>% 
-  arrange(datetime) %>%
-  group_by(CollarID) %>% 
-  slice(1)
-
-telem.data.meta <- as.data.frame(telem.data.meta)
-
-#change datetime to deployment start date
-telem.data.meta <- telem.data.meta %>% 
-  rename(Deployment_start = datetime)
-
-#End of deployment, or rather, date of downloading collar data
-telem.data.end <- telem.data %>% 
-  arrange(desc(datetime)) %>%
-  group_by(CollarID) %>% 
-  slice(1)
-
-#change datetime to deployment end date
-telem.data.end <- telem.data.end %>% 
-  rename(Deployment_end = datetime)
-as.data.frame(telem.data.end)
-
-#Add column for deployment end date to metadata
-telem.data.meta <- telem.data.meta %>% 
-  mutate(Deployment_end = telem.data.end$Deployment_end)
-
-#View the data
-# We now have a metadata file that will help us identify 
-# which tags are deployed on which animals
-telem.data.meta
-
-#a list of all animals if want to call out specific animals
-#telem.data.meta$AnimalID
-
-#This metadata file can be uploaded to Movebank
-write.csv(telem.data.meta, file="swmoose.telem.metadata.csv")
-
