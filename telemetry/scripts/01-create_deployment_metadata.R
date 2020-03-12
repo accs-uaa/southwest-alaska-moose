@@ -23,12 +23,11 @@ summary(deploy)
 # Split Collar_Deployment_Notes into animal_comments and deployment_end_comments depending on nature of comments. 
 # Add deployment_end_type: if Notes indicate Mortality, code as "dead", otherwise NA.
 
-# Relabel redeploys to avoid duplicate animal IDs. This is achieved by the code chunk that starts with group_by() and ends at ungroup(). If length of Collar_Serial group > 1, add letter suffixes "a", "b" to the existing Collar_Serial number. For all Collar_Serials, add an "M" so that the column does not get read as numeric during export/import.
+# Animal ID should be unique for each individual-- probably Moose ID column
+# Tag ID refers to the collar ID and is not necessarily unique across individuals- Collar_Serial
+# Need to create a Deployment ID that uniquely identifies tags that have been redeployed on different animals. This is achieved by the code chunk that starts with group_by() and ends at ungroup(). If length of Collar_Serial group > 1, add letter suffixes "a", "b" to the existing Collar_Serial number. For all Collar_Serials, add an "M" so that the column does not get read as numeric during export/import.
 
 # Drop extraneous columns: "Collar_Deployment_ID","Collar_Deployment_Notes","Collar_Serial"
-
-# Not sure about the differences between animal, deployment, and tag ID.
-
 deploy <- deploy %>% 
   mutate("sensor_type" = case_when(
     startsWith(Collar_Serial,"3") ~ "GPS",
@@ -43,21 +42,22 @@ deploy <- deploy %>%
     "deployment_end_type" =   case_when(
       grepl("Mort",Collar_Deployment_Notes) ~ "dead",
       TRUE ~ NA_character_)) %>% 
-  rename("tag_serial_no" = "Moose_ID",
+  rename("animal_id" = "Moose_ID",
          "deploy_on_timestamp"= Deployment_Start, "deploy_off_timestamp" = Deployment_End,
-         "ring_id" = Collar_Visual,"collar_status" = Collar_Status) %>% 
-  group_by(Collar_Serial) %>% 
+         "ring_id" = Collar_Visual,"collar_status" = Collar_Status,
+         "tag_id" = Collar_Serial) %>% 
+  group_by(tag_id) %>% 
   mutate(id = row_number()) %>% 
   add_tally() %>% 
-  mutate(animal_id = case_when(
-    n > 1 ~ paste0("M",Collar_Serial,sapply(id, function(i) letters[i]),sep=""),
-    TRUE ~ paste0("M",Collar_Serial,sep=""))) %>% 
+  mutate(deployment_id = case_when(
+    n > 1 ~ paste0("M",tag_id,sapply(id, function(i) letters[i]),sep=""),
+    TRUE ~ paste0("M",tag_id,sep=""))) %>% 
   ungroup() %>% 
-  select("animal_id","tag_serial_no","sensor_type","deploy_on_timestamp",
+  select("animal_id","deployment_id","tag_id","sensor_type","deploy_on_timestamp",
          "deploy_off_timestamp","collar_status","ring_id",
          "animal_comments","deployment_end_type","deployment_end_comments") %>% 
   add_column("animal_taxon" = "Alces alces", .before= 1) %>% 
-  arrange(animal_id)
+  arrange(deployment_id)
 
 # Check that timestamps are correctly interpreted
 str(deploy)
