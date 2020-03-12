@@ -77,3 +77,6 @@ write.csv(deploy,"output/deployMetadata.csv",row.names=FALSE)
 deployMovebank <- deploy %>% 
   filter(sensor_type != "none")
 write.csv(deployMovebank,"output/deployMetadataMovebank.csv",row.names=FALSE)
+
+# Clean up workspace
+rm(deploy,deployMovebank)
