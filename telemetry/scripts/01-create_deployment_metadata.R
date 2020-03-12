@@ -62,10 +62,18 @@ deploy <- deploy %>%
 # Check that timestamps are correctly interpreted
 str(deploy)
 
+# Quick summary- how many collars do we have?
+deploy %>% 
+  filter(sensor_type != "none") %>% 
+  group_by(sensor_type) %>% 
+  summarize(animals = length(sensor_type),
+            startDate = min(deploy_on_timestamp))
+
 # Export as .csv
 write.csv(deploy,"output/deployMetadata.csv",row.names=FALSE)
 
 # For Movebank upload, get rid of visual observations
+# If collar is still active, set deployment end time to today
 deployMovebank <- deploy %>% 
   filter(sensor_type != "none")
 write.csv(deployMovebank,"output/deployMetadataMovebank.csv",row.names=FALSE)
