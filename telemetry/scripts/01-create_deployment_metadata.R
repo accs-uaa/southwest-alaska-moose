@@ -62,5 +62,10 @@ deploy <- deploy %>%
 # Check that timestamps are correctly interpreted
 str(deploy)
 
-# Export as .csv + upload to Movebank
-write.csv(deploy,"output/deploymentMetadata.csv",row.names=FALSE)
+# Export as .csv
+write.csv(deploy,"output/deployMetadata.csv",row.names=FALSE)
+
+# For Movebank upload, get rid of visual observations
+deployMovebank <- deploy %>% 
+  filter(sensor_type != "none")
+write.csv(deploy,"output/deployMetadataMovebank.csv",row.names=FALSE)
