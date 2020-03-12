@@ -44,7 +44,7 @@ deploy <- deploy %>%
       TRUE ~ NA_character_)) %>% 
   rename("animal_id" = "Moose_ID",
          "deploy_on_timestamp"= Deployment_Start, "deploy_off_timestamp" = Deployment_End,
-         "ring_id" = Collar_Visual,"collar_status" = Collar_Status,
+         "ring_id" = Collar_Visual,"tag_comments" = Collar_Status,
          "tag_id" = Collar_Serial) %>% 
   group_by(tag_id) %>% 
   mutate(id = row_number()) %>% 
@@ -54,7 +54,7 @@ deploy <- deploy %>%
     TRUE ~ paste0("M",tag_id,sep=""))) %>% 
   ungroup() %>% 
   select("animal_id","deployment_id","tag_id","sensor_type","deploy_on_timestamp",
-         "deploy_off_timestamp","collar_status","ring_id",
+         "deploy_off_timestamp","tag_comments","ring_id",
          "animal_comments","deployment_end_type","deployment_end_comments") %>% 
   add_column("animal_taxon" = "Alces alces", .before= 1) %>% 
   arrange(deployment_id)
@@ -73,10 +73,10 @@ deploy %>%
 write.csv(deploy,"output/deployMetadata.csv",row.names=FALSE)
 
 # For Movebank upload, get rid of visual observations
-# If collar is still active, set deployment end time to today
+# Set "NA" to blanks
 deployMovebank <- deploy %>% 
   filter(sensor_type != "none")
-write.csv(deployMovebank,"output/deployMetadataMovebank.csv",row.names=FALSE)
+write.csv(deployMovebank,"output/deployMetadataMovebank.csv",row.names=FALSE,na="")
 
 # Clean up workspace
 rm(deploy,deployMovebank)
