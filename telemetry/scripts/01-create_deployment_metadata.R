@@ -68,4 +68,4 @@ write.csv(deploy,"output/deployMetadata.csv",row.names=FALSE)
 # For Movebank upload, get rid of visual observations
 deployMovebank <- deploy %>% 
   filter(sensor_type != "none")
-write.csv(deploy,"output/deployMetadataMovebank.csv",row.names=FALSE)
+write.csv(deployMovebank,"output/deployMetadataMovebank.csv",row.names=FALSE)
