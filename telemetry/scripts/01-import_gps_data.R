@@ -25,9 +25,7 @@ for (i in 1:length(dataFiles)) {
   # print(max(temp$No)+1==length(temp$No))
   
   temp <- temp %>% 
-  arrange(-No) %>% 
-  mutate(No = seq(1,length(No),by=1)) %>% 
-  rename(RowID = No)
+  arrange(-No)
   
   if (i == 1) {
     gpsData <- temp
@@ -43,9 +41,7 @@ rm(f,i,temp,dataFiles)
 # Remove extra columns----
 names(gpsData)
 summary(gpsData)
-# length(unique(gpsData$CollarID))
-# unique(X3D_Error..m.)
-
+length(unique(gpsData$CollarID))
 
 # List of changes to make to dataframe:
 # See https://www.vectronic-aerospace.com/wp-content/uploads/2016/04/Manual_GPS-Plus-X_v1.2.1.pdf) page 125 for meaning of column names
@@ -62,22 +58,12 @@ summary(gpsData)
 # 5. ECEF columns
 # Reason: No need for "earth-fixed" coordinates (https://en.wikipedia.org/wiki/ECEF). Use UTM or Lat/Long 
 
-# Rename Latitude.... ; Longitude.... ; Temp...C. ; Height..m.
-
-# Add column to differentiate between VHF & GPS data
-
-dropCols <- c("Activity", "X3D_Error..m.", "Main..V.", "Beacon..V.",
+dropCols <- c("No","Activity", "X3D_Error..m.", "Main..V.", "Beacon..V.",
                "SCTS_Date", "SCTS_Time",names(gpsData)[19:43],"AnimalID","GroupID",
                "ECEF_X..m.","ECEF_Y..m.","ECEF_Z..m.")
 
 gpsData <- gpsData %>% 
-  select(-dropCols) %>% 
-  rename(Long_X = "Longitude....", Lat_Y = "Latitude....", Temp_C = "Temp...C.",
-         Height_m = "Height..m.") 
-
-# Code CollarID as factor
-# gpsData <- gpsData %>% 
-  # mutate(CollarID=as.factor(CollarID))
+  select(-dropCols)
 
 #### Export----
 save(gpsData, file="output/gps_raw.Rdata")
