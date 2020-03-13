@@ -9,31 +9,86 @@ library(tidyverse)
 library(move)
 library(ctmm)
 
-load("output/gps_raw.Rdata")
+load("output/gps_raw.Rdata") # Telemetry data
+deploy <- read.csv("output/deployMetadata.csv", stringsAsFactors=F) # Deployment metadata file
 
+#### Format data----
 
-#### Format and explore data----
-# Format date/time: Get date and time in one column. Use UTC timestamp to conform with Movebank requirements
-# Add "M" to beginning of CollarID so it is no longer recognized as numeric
-# Projection will be addressed in later step
+# Filter out records for which Date Time, Lat, or Lon is NA
 
+# Combines date and time in a single column ("datetime")
+# Use UTC time zone to conform with Movebank requirements
+
+# Rename Latitude.... ; Longitude.... ; Temp...C. ; Height..m.
 gpsData <- gpsData %>% 
+  filter(!(is.na("Latitude....") | is.na("Longitude....") | is.na(UTC_Date))) %>%
   mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), 
-                               format="%m/%d/%Y %I:%M:%S %p",tz="UTC"), 
-         CollarID = paste("M", gpsData$CollarID, sep=""))
+                               format="%m/%d/%Y %I:%M:%S %p",tz="UTC")) %>% 
+  dplyr::rename(longX = "Longitude....", latY = "Latitude....", tempC = "Temp...C.",
+         height_m = "Height..m.", tag_id = CollarID)
+
+#### Correct redeploys----
+
+# Format LMT Date column as POSIX data type for easier filtering
+gpsData$LMT_Date = as.POSIXct(strptime(gpsData$LMT_Date, 
+                                       format="%m/%d/%Y",tz="America/Anchorage"))
+
+# Filter deployment metadata to include only GPS data and redeploys
+# Redeploys are differentiated from non-redeploys because they end in a letter
+redeployList <- deploy %>% 
+  filter(sensor_type == "GPS" & (grepl(paste(letters, collapse="|"), deployment_id))) %>% 
+  select(deployment_id,tag_id,deploy_on_timestamp,deploy_off_timestamp) 
+
+# Not proud of the next code chunk. Can't think of an easy alternative...
+# Create a function that loops through redeployList ?? 
+# In any case, this terrible piece of code changes Collar IDs of redeployed collars based on comparing Fix Times to Start/End Times of deployment metadata
+# Collars were left running between deployments (flagged as "error") and these need to be filtered out (all collars that are not redeployed are also flagged as "error"-- again, dumb way to do it.)
+
+# Should have 6,559 records
+redeploys <- gpsData %>% 
+  mutate("deployment_id" = case_when(
+    tag_id == redeployList$tag_id[1]
+     & LMT_Date <= redeployList$deploy_off_timestamp[1] ~ redeployList$deployment_id[1],
+    tag_id == redeployList$tag_id[2]
+    & LMT_Date >= redeployList$deploy_on_timestamp[2] ~ redeployList$deployment_id[2],
+    tag_id == redeployList$tag_id[3]
+     & LMT_Date <= redeployList$deploy_off_timestamp[3] ~ redeployList$deployment_id[3],
+    tag_id == redeployList$tag_id[4]
+    & LMT_Date >= redeployList$deploy_on_timestamp[4] ~ redeployList$deployment_id[4],
+    TRUE ~ "error")) %>%
+  filter(deployment_id != "error")
+
+# Merge back with gpsData
+# Create a deployment_id column similar to redeploys
+# Add "M" to beginning of CollarID so it is no longer recognized as numeric
+gpsData <- gpsData %>% 
+  filter(!(tag_id == "30927" | tag_id == "30928")) %>% 
+  dplyr::mutate(deployment_id = paste("M", tag_id, sep=""))
+
+gpsData <- rbind(gpsData,redeploys)
+
 
 # Create unique row number for each device, according to date/time
-# Coerce back to dataframe (needed for move package)
+# Note that RowID is now unique within but not across individuals
 gpsData <- gpsData %>% 
-  group_by(CollarID) %>% 
+  mutate(CollarID = deployment_id) %>% 
+  select(-deployment_id) %>% 
+group_by(CollarID) %>% 
   arrange(datetime) %>% 
   mutate(RowID = row_number()) %>% 
-  arrange(CollarID,RowID) 
+  arrange(CollarID,RowID) %>% 
+  ungroup()
+ 
+rm(redeploys,deploy)
 
+# Join with deployment metadata to get individual animal ID
+
+
+#### Explore data for outliers----
+
+# Coerce back to dataframe (needed for move package)
 gpsData <- as.data.frame(gpsData) 
-# Note that RowID is now unique within but not across individuals
 
-# Explore data for outliers
 plot(gpsData$Long_X, gpsData$Lat_Y, xlab="Longitude", ylab="Latitude")
 
 # Remove outliers with long values in the 13s, which is in Germany where collars are manufactured
