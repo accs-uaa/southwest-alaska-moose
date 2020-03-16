@@ -42,12 +42,12 @@ deploy <- deploy %>%
     "deployment_end_type" =   case_when(
       grepl("Mort",Collar_Deployment_Notes) ~ "dead",
       TRUE ~ NA_character_)) %>% 
-  rename("animal_id" = "Moose_ID",
+  dplyr::rename("animal_id" = "Moose_ID",
          "deploy_on_timestamp"= Deployment_Start, "deploy_off_timestamp" = Deployment_End,
          "ring_id" = Collar_Visual,"tag_comments" = Collar_Status,
          "tag_id" = Collar_Serial) %>% 
   group_by(tag_id) %>% 
-  mutate(id = row_number()) %>% 
+  dplyr::mutate(id = row_number()) %>% 
   add_tally() %>% 
   mutate(deployment_id = case_when(
     n > 1 ~ paste0("M",tag_id,sapply(id, function(i) letters[i]),sep=""),
@@ -69,11 +69,15 @@ deploy %>%
   summarize(animals = length(sensor_type),
             startDate = min(deploy_on_timestamp))
 
-# Export as .csv
-write.csv(deploy,"output/deployMetadata.csv",row.names=FALSE)
+unique(deploy$deployment_id)
 
-# For Movebank upload, get rid of visual observations
+# Export as .Rdata file
+save(deploy, file="output/deployMetadata.Rdata")
+
+# Export as .csv for Movebank upload
+# Movebank throws errors when certain columns are coded as NA
 # Set "NA" to blanks
+# Also get rid of visual only observations
 deployMovebank <- deploy %>% 
   filter(sensor_type != "none")
 write.csv(deployMovebank,"output/deployMetadataMovebank.csv",row.names=FALSE,na="")
