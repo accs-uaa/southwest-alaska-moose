@@ -20,7 +20,7 @@ source("scripts/function-collarRedeploys.R")
 
 gpsData <- gpsData %>% 
   filter(!(is.na("Latitude....") | is.na("Longitude....") | is.na(UTC_Date))) %>%
-  mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), 
+  dplyr::mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), 
                                format="%m/%d/%Y %I:%M:%S %p",tz="UTC")) %>% 
   dplyr::rename(longX = "Longitude....", latY = "Latitude....", tempC = "Temp...C.",
          height_m = "Height..m.", tag_id = CollarID, mortalityStatus = "Mort..Status")
@@ -31,7 +31,7 @@ gpsData <- gpsData %>%
 # Redeploys are differentiated from non-redeploys because they end in a letter
 redeployList <- deploy %>% 
   filter(sensor_type == "GPS" & (grepl(paste(letters, collapse="|"), deployment_id))) %>% 
-  select(deployment_id,tag_id,deploy_on_timestamp,deploy_off_timestamp) 
+  dplyr::select(deployment_id,tag_id,deploy_on_timestamp,deploy_off_timestamp) 
 
 # Format LMT Date column as POSIX data type for easier filtering
 gpsData$LMT_Date = as.POSIXct(strptime(gpsData$LMT_Date, 
@@ -64,13 +64,14 @@ rm(gpsRedeployOnly,gpsUniqueOnly,redeployList,makeRedeploysUnique,tagRedeploy)
 #### Create unique row number----
 # For each device, according to date/time
 # Note that RowID is now unique within but not across individuals
+
 gpsData <- gpsData %>% 
 group_by(deployment_id) %>% 
   arrange(datetime) %>% 
-  dplyr::mutate(RowID = row_number()) %>% 
+  dplyr::mutate(RowID = row_number(deployment_id)) %>% 
   arrange(deployment_id,RowID) %>% 
   ungroup() %>% 
-  select(RowID,everything())
+  dplyr::select(RowID,everything())
  
 
 # Join with deployment metadata to get individual animal ID
