@@ -19,11 +19,11 @@ source("scripts/function-collarRedeploys.R")
 # 3. Rename Latitude.... ; Longitude.... ; Temp...C. ; Height..m.
 
 gpsData <- gpsData %>% 
-  filter(!(is.na("Latitude....") | is.na("Longitude....") | is.na(UTC_Date))) %>%
   dplyr::mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), 
                                format="%m/%d/%Y %I:%M:%S %p",tz="UTC")) %>% 
   dplyr::rename(longX = "Longitude....", latY = "Latitude....", tempC = "Temp...C.",
-         height_m = "Height..m.", tag_id = CollarID, mortalityStatus = "Mort..Status")
+         height_m = "Height..m.", tag_id = CollarID, mortalityStatus = "Mort..Status") %>% 
+  filter(!(is.na(longX) | is.na(latY) | is.na(UTC_Date)))
 
 #### Correct redeploys----
 
@@ -76,7 +76,7 @@ group_by(deployment_id) %>%
 
 # Join with deployment metadata to get individual animal ID
 # Useful when uploading into Movebank.
-deploy <- deploy %>% select(animal_id,deployment_id)
+deploy <- deploy %>% dplyr::select(animal_id,deployment_id)
 gpsData <- left_join(gpsData,deploy,by="deployment_id")
 rm(deploy)
 
