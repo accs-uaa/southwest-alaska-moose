@@ -5,11 +5,10 @@
 
 #### Load packages and data----
 library(tidyverse)
-library(move)
-library(ctmm)
 
 load("output/gps_raw.Rdata") # GPS telemetry data
 load("output/deployMetadata.Rdata") # Deployment metadata file
+
 source("scripts/function-collarRedeploys.R")
 
 #### Format GPS data----
