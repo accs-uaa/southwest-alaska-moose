@@ -85,4 +85,4 @@ rm(deploy)
 gpsData <- as.data.frame(gpsData)
 
 # Save as .Rdata file
-save(gpsData, file="output/gps_clean.Rdata")
+save(gpsData, file="output/gps_clean_all.Rdata")
