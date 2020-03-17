@@ -53,13 +53,13 @@ length(unique(gpsData$CollarID))
 # Reason: Unnecessary for analyses, tells you about collar battery life 
 # 3. "SCTS_Date", "SCTS_Time"
 # Reason: this is not the date/time of the fix
-# 4. AnimalID , GroupID, all C.N. and Sat/Sats columns
-# Reason: All NAs
+# All C.N. and Sat/Sats columns. Reason: All NAs
 # 5. ECEF columns
+# 6. No.1 and No.2. Reason: Duplicate from No
 # Reason: No need for "earth-fixed" coordinates (https://en.wikipedia.org/wiki/ECEF). Use UTM or Lat/Long 
 
-dropCols <- c("No","Activity", "X3D_Error..m.", "Main..V.", "Beacon..V.",
-               "SCTS_Date", "SCTS_Time",names(gpsData)[19:43],"AnimalID","GroupID",
+dropCols <- c("No","X3D_Error..m.",
+               "SCTS_Date", "SCTS_Time",names(gpsData)[c(19:43,45:47,49:50)],
                "ECEF_X..m.","ECEF_Y..m.","ECEF_Z..m.")
 
 gpsData <- gpsData %>% 
