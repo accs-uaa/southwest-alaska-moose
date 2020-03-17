@@ -14,16 +14,18 @@ source("scripts/function-collarRedeploys.R")
 #### Format GPS data----
 
 # 1. Filter out records for which Date Time, Lat, or Lon is NA
-# 2. Combine date and time in a single column ("datetime")
+# 2. Filter out records with long values of 13.xx, which is in Germany where collars are manufactured
+# 3. Combine date and time in a single column ("datetime")
 ## Use UTC time zone to conform with Movebank requirements
-# 3. Rename Latitude.... ; Longitude.... ; Temp...C. ; Height..m.
+# 4. Rename Latitude.... ; Longitude.... ; Temp...C. ; Height..m.
 
 gpsData <- gpsData %>% 
   dplyr::mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), 
                                format="%m/%d/%Y %I:%M:%S %p",tz="UTC")) %>% 
   dplyr::rename(longX = "Longitude....", latY = "Latitude....", tempC = "Temp...C.",
          height_m = "Height..m.", tag_id = CollarID, mortalityStatus = "Mort..Status") %>% 
-  filter(!(is.na(longX) | is.na(latY) | is.na(UTC_Date)))
+  filter(!(is.na(longX) | is.na(latY) | is.na(UTC_Date))) %>% 
+  filter(longX < -152)
 
 #### Correct redeploys----
 
@@ -61,6 +63,7 @@ length(unique(gpsData$deployment_id)) # Should be 24
 # Clean workspace
 rm(gpsRedeployOnly,gpsUniqueOnly,redeployList,makeRedeploysUnique,tagRedeploy)
 
+
 #### Create unique row number----
 # For each device, according to date/time
 # Note that RowID is now unique within but not across individuals
@@ -68,7 +71,7 @@ rm(gpsRedeployOnly,gpsUniqueOnly,redeployList,makeRedeploysUnique,tagRedeploy)
 gpsData <- gpsData %>% 
 group_by(deployment_id) %>% 
   arrange(datetime) %>% 
-  dplyr::mutate(RowID = row_number(deployment_id)) %>% 
+  dplyr::mutate(RowID = row_number(datetime)) %>% 
   arrange(deployment_id,RowID) %>% 
   ungroup() %>% 
   dplyr::select(RowID,everything())
