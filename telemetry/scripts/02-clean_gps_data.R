@@ -1,5 +1,4 @@
-# Objective: Examine GPS data for issues: outliers, duplicates, and skips.
-# Last updated: 29 Jan 2020
+# Objective: Format data: Rename columns, recode collar ID to take into account redeployments.
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
