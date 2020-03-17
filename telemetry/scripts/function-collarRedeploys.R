@@ -5,7 +5,7 @@
 #         Alaska Center for Conservation Science
 
 # Notes:
-# This is my half-assed attempt at writing functions. It's good enough for now, but there are lots of improvements that could be made:
+# Work in progress. Does what I need it to do for now, but there are several improvements that could be made:
 
 # 1. Right now, makeRedeploysUnique only works if it is run on the subset of tags identified as "redeploy". This isn't ideal and there must be a way to shove tagRedeploy and codeRedeploy into a single function (see Attempt below). I've tried doing that but I run into problems when it comes to iterating it over the entire dataframe. I wanted to avoid using a for loop but couldn't figure out how to get apply to work for me when merging both functions 
 
