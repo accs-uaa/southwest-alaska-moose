@@ -23,8 +23,6 @@ tagRedeploy <- function(tagList,redeployList) {
   tagStatus <- ifelse(tagList %in% redeployList, "redeploy","unique")
 }
 
-test$tagStatus <- tagRedeploy(test$tag_id,redeployList$tag_id)
-
 # Uniquely code redeploys----
 # This function appends letters to non-unique tag IDs (i.e. identified as "redeploy" by function tagRedeploy)
 # Only works if there is one redeploy
@@ -58,18 +56,6 @@ makeRedeploysUnique <- function(tagData, redeployData) {
   }
   deployment_id  
 } 
-
-
-gpsRedeployOnly<-subset(test,tagStatus=="redeploy")
-test<-subset(test,tagStatus!="redeploy")
-gpsRedeployOnly$new_id<-apply(X=gpsRedeployOnly,MARGIN=1,FUN=makeRedeploysUnique,redeployData=redeployList)
-
-# Subset errors and rbind
-gpsRedeployOnly<-subset(gpsRedeployOnly,new_id!="error")
-test$new_id <- paste0("M",test$tag_id,sep="")
-
-test <- rbind(test,gpsRedeployOnly)
-
 
 # Attempt at merging both functions together----
 # I can't figure out a why to run this either on its own (only operates on first index) or as an apply function (has an extra argument)
