@@ -5,7 +5,7 @@ subsetTimeLags <- function(id,timeStep) {
   subsetID <- gpsMove[[n]]
   subsetID <- subsetID@data
   timeLag <- timeLags[[n]]
-  cat("Evaluating...",id,"...Row indices with time step greater than",timeStep,":")
+  cat("Evaluating...",id,'\n',"Row indices with time step greater than",timeStep,":")
   print(which(timeLag>timeStep)) 
   return(subsetID)
 }
