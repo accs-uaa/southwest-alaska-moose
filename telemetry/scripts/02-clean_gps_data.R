@@ -5,6 +5,7 @@
 
 #### Load packages and data----
 library(tidyverse)
+library(rgdal)
 
 load("output/gps_raw.Rdata") # GPS telemetry data
 load("output/deployMetadata.Rdata") # Deployment metadata file
@@ -26,6 +27,19 @@ gpsData <- gpsData %>%
          height_m = "Height..m.", tag_id = CollarID, mortalityStatus = "Mort..Status") %>% 
   filter(!(is.na(longX) | is.na(latY) | is.na(UTC_Date))) %>% 
   filter(longX < -152)
+
+## Generate Eastings and Northings----
+# This makes calculation of movement metrics easier
+coordLatLong = SpatialPoints(cbind(gpsData$longX, gpsData$latY), proj4string = CRS("+proj=longlat"))
+coordLatLong # check that signs are correct
+
+# Transform coordinates to UTM
+# Use EPSG=32604 for WGS84, UTM Zone 4N
+coordUTM <- spTransform(coordLatLong, CRS("+init=epsg:32604"))
+coordUTM <- as.data.frame(coordUTM)
+gpsData$Easting <- coordUTM[,1]
+gpsData$Northing <- coordUTM[,2]
+rm(coordUTM,coordLatLong)
 
 #### Correct redeploys----
 
