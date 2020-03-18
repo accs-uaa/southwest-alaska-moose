@@ -50,16 +50,16 @@ timeLags <- move::timeLag(gpsMove, units='hours')
 ids <- unique(gpsData$deployment_id)
 
 # Generate plots and quantitative summary
-lagSummary <- data.frame(row.names = ids)
+timelagSummary <- data.frame(row.names = ids)
 
 for (i in 1:length(ids)){
   timeL <- timeLags[[i]]
   
-  lagSummary$id[i] <- ids[i]
-  lagSummary$min[i] <- min(timeL)
-  lagSummary$mean[i] <- mean(timeL)
-  lagSummary$sd[i] <- sd(timeL)
-  lagSummary$max[i] <- max(timeL)
+  timelagSummary$id[i] <- ids[i]
+  timelagSummary$min[i] <- min(timeL)
+  timelagSummary$mean[i] <- mean(timeL)
+  timelagSummary$sd[i] <- sd(timeL)
+  timelagSummary$max[i] <- max(timeL)
   
   hist(timeL,main=ids[i],xlab="Hours")
   plotName <- paste("timeLags",ids[i],sep="")
@@ -188,7 +188,7 @@ which(timeL>2.05) # Only missing one fix
 subsetID <- subsetTimeLags("M35173",1.95,2.05) # good to go
 
 # Workspace clean-up
-rm(ids,timeLags,lagSummary,subsetID,subsetTimeLags)
+rm(ids,timeLags,subsetID,subsetTimeLags)
 
 gpsClean <- gpsData %>% 
   filter(!(deployment_id == "M30103" & RowID <= 6 | deployment_id == "M30105" & RowID <= 5 | 
@@ -207,30 +207,11 @@ gpsMove <- move(x=gpsClean$longX,y=gpsClean$latY,
                 data=gpsClean,proj=CRS("+proj=longlat +ellps=WGS84"),
                 animal=gpsClean$deployment_id, sensor="gps")
 
-#### Investigate location outliers----
-# Using the ctmm::outlie function
-# Generate ctmm::outlie plots for each individual
-# High-speed segments are in blue, while distant locations are in red
+rm(gpsData, timelagSummary)
 
-ctmmData <- as.telemetry(gpsMove)
-ids <- names(ctmmData)
-ctmmSummary <- data.frame(row.names = ids)
-# Grab some coffee in the break room while this runs
+#### Check for duplicated timestamps
+duplicateTimes <- getDuplicatedTimestamps(x=as.factor(gpsClean$deployment_id),timestamps=gpsClean$datetime,sensorType="gps") # none
+rm(duplicateTimes)
 
-for (i in 1:length(ids)){
-  out <- outlie(ctmmData[[i]],plot=TRUE,main=ids[i])
-  ctmmSummary$minSpeed[i] <- min(out$speed)
-  ctmmSummary$meanSpeed[i] <- mean(out$speed)
-  ctmmSummary$maxSpeed[i] <- max(out$speed)
-  ctmmSummary$minDist[i] <- min(out$distance)
-  ctmmSummary$meanDist[i] <- mean(out$distance)
-  ctmmSummary$maxDist[i] <- max(out$distance)
-  plotName <- paste("outliers",ids[i],sep="")
-  filePath <- paste("output/plots/",plotName,sep="")
-  finalName <- paste(filePath,"png",sep=".")
-  dev.copy(png,finalName)
-  dev.off()
-}
-
-rm(plotName,filePath,finalName,i,ids)
-dev.off()
+# Export cleaned data as movestack object- easier to work with in subsequent scripts
+save(gpsMove,file="output/gps_cleaned_TimeLags.Rdata")
