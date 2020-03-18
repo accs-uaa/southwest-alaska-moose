@@ -43,7 +43,7 @@ summary(gpsData)
 
 # Will tackle other, less noticeable location outliers on a case-by-case basis later
 
-#### Check for outlying fix rates----
+#### Check for time lag/fix rate issues----
 
 # Calculate time lags between locations
 timeLags <- move::timeLag(gpsMove, units='hours')
