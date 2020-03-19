@@ -63,7 +63,7 @@ for (i in 1:length(ids)){
   
   hist(timeL,main=ids[i],xlab="Hours")
   plotName <- paste("timeLags",ids[i],sep="")
-  filePath <- paste("output/plots/",plotName,sep="")
+  filePath <- paste("output/plots/outliers/",plotName,sep="")
   finalName <- paste(filePath,"png",sep=".")
   dev.copy(png,finalName)
   dev.off()
