@@ -214,4 +214,4 @@ duplicateTimes <- getDuplicatedTimestamps(x=as.factor(gpsClean$deployment_id),ti
 rm(duplicateTimes)
 
 # Export cleaned data as movestack object- easier to work with in subsequent scripts
-save(gpsMove,file="output/gps_cleaned_TimeLags.Rdata")
+save(gpsMove,file="output/gps_cleanTimeLags.Rdata")
