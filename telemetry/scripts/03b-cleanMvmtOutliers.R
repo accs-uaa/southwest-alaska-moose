@@ -31,26 +31,40 @@ ggmap(mapData)+
 #### Calculate movement metrics----
 
 ## Distances
-# Distances are in meters
-# Speeds are in m/s
+# Units are in meters
 # Not sure what a reasonable sustained (2-hour speed) is but... moose can run. 
 # Covering distances of 10 km in two hours is probably not ridiculous
 gpsClean$distanceMeters <- unlist(lapply(move::distance(gpsMove), c, NA))
 summary(gpsClean$distanceMeters)
 
-which(gpsClean$distanceMeters>9000)
+which(gpsClean$distanceMeters>8000)
 
 # Plot some of these to see if anything ~~fishy~~ is going on
-
+plotOutliers(gpsClean,18105,18140) # looks fine
+plotOutliers(gpsClean,66200,66500) # kind of weird but I think it's normal, she eventually goes back to her usual HR and who knows what goes on during calving 
+plotOutliers(gpsClean,65200,67000)
 plotOutliers(gpsClean,66550,66650) # looks ok
-temp <- plotOutliers(gpsClean,90500,90650,output=TRUE) # that looks weird. two consecutive fixes had distances >9km: 90599 and 90600
 
+plotOutliers(gpsClean,90500,90650) # looks weird. two consecutive fixes had distances >9km: 90599 and 90600
+temp <- plotOutliers(gpsClean,90570,90610,output=TRUE) 
+# I would lean towards deleting 90600 and interpolating
+which(row.names(temp)==90600)
+temp <- temp[-31,]
+plotOutliers(temp,1,40) # looks good now. 
 
+## Speeds
+# Units are in m/s
 
 gpsClean$speedMps <- unlist(lapply(move::speed(gpsMove),c, NA ))
 summary(speeds)   # PS: We see an outlier in the Max
 hist(speeds, breaks="FD")
 
+
+#### Commit changes----
+# Restart from move object since we will have to recalculate speed and distances
+gpsClean <- as.data.frame(gpsMove)
+gpsClean <- gpsClean %>% 
+  filter(!(deployment_id == "M30937" & RowID == 5789))
 
 
 
