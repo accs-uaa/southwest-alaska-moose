@@ -6,8 +6,11 @@
 
 library(ggmap)
 library(mapproj)
+library(move)
+library(ctmm)
+library(tidyverse)
 
-load("output/gps_cleaned_TimeLags.Rdata")
+load("output/gps_cleanTimeLagsOnly.Rdata")
 
 source("scripts/function-plotOutliers.R")
 
@@ -27,6 +30,8 @@ mapData <- get_map(studyArea, zoom=9, source="google", maptype="terrain")
 # This takes a hot second
 ggmap(mapData)+
   geom_path(data=gpsClean, aes(x=longX, y=latY,colour=as.factor(deployment_id)))
+
+rm(studyArea,mapData)
 
 #### Calculate movement metrics----
 
@@ -52,47 +57,97 @@ which(row.names(temp)==90600)
 temp <- temp[-31,]
 plotOutliers(temp,1,40) # looks good now. 
 
+rm(temp)
+
 ## Speeds
 # Units are in m/s
 
-gpsClean$speedMps <- unlist(lapply(move::speed(gpsMove),c, NA ))
-summary(speeds)   # PS: We see an outlier in the Max
-hist(speeds, breaks="FD")
+gpsClean$speedKmh <- (unlist(lapply(move::speed(gpsMove),c, NA )))*3.6
+summary(gpsClean$speedKmh) # Highest speeds are related to the very high distances we examined in the step before.    
 
-
-#### Commit changes----
-# Restart from move object since we will have to recalculate speed and distances
-gpsClean <- as.data.frame(gpsMove)
-gpsClean <- gpsClean %>% 
-  filter(!(deployment_id == "M30937" & RowID == 5789))
-
-
-
-#### Investigate location outliers----
-# Using the ctmm::outlie function
+#### Using the ctmm::outlie function----
 # Generate ctmm::outlie plots for each individual
 # High-speed segments are in blue, while distant locations are in red
+# The plots identify other movement outliers, but I can't really figure out how to isolate problematic data points.
 
 ctmmData <- as.telemetry(gpsMove)
 ids <- names(ctmmData)
-movementMetrics <- data.frame(row.names = ids)
 
 # Grab some coffee in the break room while this runs
-
 for (i in 1:length(ids)){
-  out <- outlie(ctmmData[[i]],plot=TRUE,main=ids[i])
-  movementMetrics$minSpeed[i] <- min(out$speed)
-  movementMetrics$meanSpeed[i] <- mean(out$speed)
-  movementMetrics$maxSpeed[i] <- max(out$speed)
-  movementMetrics$minDistKm[i] <- min(out$distance)/1000
-  movementMetrics$meanDistKm[i] <- mean(out$distance)/1000
-  movementMetrics$maxDistKm[i] <- max(out$distance)/1000
+  ctmm::outlie(ctmmData[[i]],plot=TRUE,main=ids[i])
   plotName <- paste("outliers",ids[i],sep="")
-  filePath <- paste("output/plots/",plotName,sep="")
+  filePath <- paste("output/plots/outliers/",plotName,sep="")
   finalName <- paste(filePath,"png",sep=".")
   dev.copy(png,finalName)
   dev.off()
+  rm(plotName,filePath,finalName)
 }
 
-rm(plotName,filePath,finalName,i,ids,out,ctmmData)
+rm(i,ids,ctmmData)
 dev.off()
+
+# Checking out some wonky-looking movements based on the ctmm plots
+
+# M30102
+subsetOutlier <- subset(gpsClean,deployment_id=="M30102")
+plotOutliers(subsetOutlier,1,nrow(subsetOutlier)) # can't identify anything
+
+# M30103
+subsetOutlier <- subset(gpsClean,deployment_id=="M30103")
+plotOutliers(subsetOutlier,1,nrow(subsetOutlier))
+subsetOutlier %>% filter(longX> (-158.43) & longX < (-158.38) & latY < (59.19) & latY > (59.16))
+plotOutliers(subsetOutlier,4800,5000) # need to fix Row ID 4894
+plotOutliers(subsetOutlier,5460,5500) # fine
+plotOutliers(subsetOutlier,5770,5790) # need to fix Row ID 5778
+subsetOutlier <- subsetOutlier %>% filter(RowID!=5778 & RowID!=4894)
+plotOutliers(subsetOutlier,1,nrow(subsetOutlier)) # fixes the issues
+
+# M30929
+subsetOutlier <- subset(gpsClean,deployment_id=="M30929")
+plotOutliers(subsetOutlier,1,nrow(subsetOutlier)) # based on ctmm plot, there seem to be a couple of outliers but on this plot I can only easily identify one
+subsetOutlier %>% 
+  filter(longX> (-159.03) & longX < (-159.0) & latY < (59.2) & latY > (59.15)) # rowID 2351
+plotOutliers(subsetOutlier,2300,2400)
+subsetOutlier <- subsetOutlier %>% filter(RowID!=2351)
+plotOutliers(subsetOutlier,1,nrow(subsetOutlier)) # fixes the issue
+
+# M30930
+subsetOutlier <- subset(gpsClean,deployment_id=="M30930")
+plotOutliers(subsetOutlier,1,nrow(subsetOutlier))
+subsetOutlier %>% 
+  filter(longX> (-158.37) & longX < (-158.3) & latY < (59.2) & latY > (59.18)) # row ID 3616
+plotOutliers(subsetOutlier,3500,3640)
+subsetOutlier <- subsetOutlier %>% filter(RowID!=3616)
+plotOutliers(subsetOutlier,1,nrow(subsetOutlier)) # fixes the issue
+
+# M30935
+subsetOutlier <- subset(gpsClean,deployment_id=="M30935")
+plotOutliers(subsetOutlier,1,nrow(subsetOutlier))
+subsetOutlier %>% 
+  filter(longX> (-157.94) & longX < (-157.92) & latY < (58.95) & latY > (58.93)) # row ID 1856
+plotOutliers(subsetOutlier,1800,1880) # don't want to mess around with this one..
+
+# other plots look OK
+
+rm(subsetOutlier,plotOutliers)
+
+#### Commit changes----
+# Restart from move object since we will have to recalculate speed and distances
+# coords.x1 and coords.x2 are the same as longX, latY columns - not sure if move package creates them?
+gpsClean <- as.data.frame(gpsMove)
+gpsClean <- gpsClean %>% 
+  filter(!(deployment_id == "M30937" & RowID == 5789 | deployment_id=="M30103" & RowID == 5778 |
+           deployment_id=="M30103" & RowID == 4894 | deployment_id == "M30929" & RowID == 2351 |
+             deployment_id=="M30930" & RowID == 3616)) %>% 
+  select(-c(coords.x1,coords.x2))
+
+# Convert to new move object
+gpsMove <- move(x=gpsClean$longX,y=gpsClean$latY,
+                time=gpsClean$datetime,
+                data=gpsClean,proj=CRS("+proj=longlat +ellps=WGS84"),
+                animal=gpsClean$deployment_id, sensor="gps")
+
+#### Save files----
+save(gpsMove,file="output/gps_cleanTimeAndSpace.Rdata")
+
