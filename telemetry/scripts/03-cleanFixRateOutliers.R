@@ -10,7 +10,7 @@ library(tidyverse)
 library(move)
 library(ctmm)
 
-load("output/gps_clean_all.Rdata")
+load("output/gps_formatted_notCleaned.Rdata")
 source("scripts/function-subsetIDTimeLags.R")
 
 #### Convert to Movebank object----
@@ -214,4 +214,4 @@ duplicateTimes <- getDuplicatedTimestamps(x=as.factor(gpsClean$deployment_id),ti
 rm(duplicateTimes)
 
 # Export cleaned data as movestack object- easier to work with in subsequent scripts
-save(gpsMove,file="output/gps_cleanTimeLags.Rdata")
+save(gpsMove,file="output/gps_cleanTimeLagsOnly.Rdata")
