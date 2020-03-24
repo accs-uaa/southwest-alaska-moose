@@ -149,5 +149,5 @@ gpsMove <- move(x=gpsClean$longX,y=gpsClean$latY,
                 animal=gpsClean$deployment_id, sensor="gps")
 
 #### Save files----
-save(gpsMove,file="output/gps_cleanTimeAndSpace.Rdata")
+save(gpsMove,file="output/gps_cleanSpaceTime.Rdata")
 
