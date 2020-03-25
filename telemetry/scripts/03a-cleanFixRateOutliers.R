@@ -29,13 +29,13 @@ n.locs(gpsMove) # no of locations per individuals
 
 # Explore data for outliers----
 # See vignette: https://ctmm-initiative.github.io/ctmm/articles/error.html
-# This is always so hacky & iterative, and I never have a good workflow for this
 # 
-# 1. Check location outliers. 
-# 2. Check time lags. Fix rate is 2 hours- find instances where fix rate is much smaller/larger. A lot of the times the problems stem from unidentified redeployments (though this should have been addressed in previous script) or collar issues at the start/end of deployment
-# 3. Investigate outliers manually. Consider: 1- Missed fixes, 2- Impossible speeds or distances, 3- Impossible locations
 
-# Location outliers----
+# 1. Check time lags- missed fixed rates or duplicates. Fix rate is 2 hours. In this data set, most problems stem from unidentified redeployments (addressed in previous script) and collar issues at the start/end of deployment
+# 2. Check movement outliers including:
+#         a) improbable speeds
+#         b) improbable distances
+#         c) improbable locations
 
 plot(gpsData$longX, gpsData$latY, xlab="Longitude", ylab="Latitude")
 
@@ -85,7 +85,7 @@ subsetID <- subsetTimeLags("M30102",1.95,2.05) # nothing, good to go.
 subsetID <- subsetTimeLags("M30103",1.95,2.05)
 
 View(subsetID[1:10,]) # 1. Collar starts on April 5 2018, but fix rates do not become consistent until April 8 (barely any data from 6-7 Apr). Solution: Delete start (n=6).
-View(subsetID[970:985,]) # No data on 28 Jun 2018 but doesn't seemed to have moved much. Can we apply Kalman filtering?
+View(subsetID[970:985,]) # No data on 28 Jun 2018 but doesn't seemed to have moved much. Can we interpolate?
 
 # investigating... M30104
 subsetID <- subsetTimeLags("M30104",1.95,2.05)
