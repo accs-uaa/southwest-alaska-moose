@@ -6,7 +6,8 @@
 # Working through vignette: https://ctmm-initiative.github.io/ctmm/articles/variogram.html
 
 # Load packages and data----
-aibrary(ctmm)
+library(ctmm)
+library(tidyverse)
 load("output/gps_cleanSpaceTime.Rdata")
 
 source("scripts/function-plotVariograms.R") # calls varioPlot function
@@ -22,11 +23,24 @@ plot(gpsData,col=rainbow(length(gpsData)))
 # Plot variograms
 varioPlot(gpsData)
 
-# Exclude individuals M30927a, M30928a, M30928b, M35172
-# Too few data points to reach asymptote
 # Many of the zoomed in plots are non-linear, indicating continuity in the animal's velocity (from variogram vignette)
 # We can fit a linear model like OU to see by how much we would need to coarsen our timescale for use in common analytical methods like SSF
 # internal numbers in ctmm use SI units of meters and seconds
 # Random gaps in the data are acceptable and fully accounted for in both variogram estimation and model fitting
 
-# 
+# Exclude individuals M30927a, M30928a, M30928b, M35172
+# Too few data points to reach asymptote
+idsToExclude <- c("M30927a","M30928a", "M30928b", "M35172")
+gpsDataExcluded <- gpsData[-unlist(lapply(idsToExclude, function(x) grep(x, names(gpsData)) ) ) ]
+names(gpsDataExcluded)
+
+# Use ctmm.guess (=variogram.fit) to obtain initial "guess" parameters, which can then be passed onto to ctmm.fit
+# Use ctmm.fit to choose top-ranked model, which will be used to generate aKDEs
+initParam <- lapply(gpsDataExcluded[1:length(gpsDataExcluded)], function(b) ctmm.guess(b,interactive=FALSE) )
+fitMvmtModel <- lapply(1:length(gpsDataExcluded), function(i) ctmm.fit(gpsDataExcluded[[i]],initParam[[i]]) )
+names(fitMvmtModel) <- names(gpsDataExcluded[1:length(gpsDataExcluded)])
+
+# e.g.
+summary(fitMvmtModel[[1]])
+
+save(fitMvmtModel,file="output/fitMvmtModel.RData")
