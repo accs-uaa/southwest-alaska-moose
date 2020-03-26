@@ -35,12 +35,16 @@ gpsDataExcluded <- gpsData[-unlist(lapply(idsToExclude, function(x) grep(x, name
 names(gpsDataExcluded)
 
 # Use ctmm.guess (=variogram.fit) to obtain initial "guess" parameters, which can then be passed onto to ctmm.fit
-# Use ctmm.fit to choose top-ranked model, which will be used to generate aKDEs
+# Use ctmm.select to choose top-ranked model, which will be used to generate aKDEs
+# Do not use ctmm.fit - ctmm.fit() returns a model of the same class as the guess argument i.e. an OUF model with anisotropic covariance.
 initParam <- lapply(gpsDataExcluded[1:length(gpsDataExcluded)], function(b) ctmm.guess(b,interactive=FALSE) )
-fitMvmtModel <- lapply(1:length(gpsDataExcluded), function(i) ctmm.fit(gpsDataExcluded[[i]],initParam[[i]]) )
+fitMvmtModel <- lapply(1:length(gpsDataExcluded), function(i) ctmm.select(gpsDataExcluded[[i]],initParam[[i]],verbose=TRUE) )
 names(fitMvmtModel) <- names(gpsDataExcluded[1:length(gpsDataExcluded)])
 
-# e.g.
-summary(fitMvmtModel[[1]])
-
+# Export results
 save(fitMvmtModel,file="output/fitMvmtModel.RData")
+
+# View top model for each individual
+lapply(fitMvmtModel,function(x) summary(x)[1]) # 
+
+
