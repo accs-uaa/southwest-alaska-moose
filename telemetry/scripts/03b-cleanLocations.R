@@ -3,35 +3,16 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 
 # Load data and packages----
-
-library(ggmap)
-library(mapproj)
 library(move)
 library(ctmm)
 library(tidyverse)
 
-load("output/gps_cleanTimeLagsOnly.Rdata")
+load("pipeline/03a_cleanFixRate/cleanFixRate.Rdata")
 
 source("scripts/function-plotOutliers.R")
 
 # Convert to dataframe for plotting
 gpsClean <- as.data.frame(gpsMove)
-
-# Plot all individuals----
-
-# Print bounding box extent 
-# Multiplicative factor to extend slightly beyond locations
-(studyArea<-bbox(extent(gpsMove)*1.2))
-
-# Request map data from Google
-mapData <- get_map(studyArea, zoom=9, source="google", maptype="terrain")
-
-# Plot map and add the locations
-# This takes a hot second
-ggmap(mapData)+
-  geom_path(data=gpsClean, aes(x=longX, y=latY,colour=as.factor(deployment_id)))
-
-rm(studyArea,mapData)
 
 #### Calculate movement metrics----
 
@@ -77,7 +58,7 @@ ids <- names(ctmmData)
 for (i in 1:length(ids)){
   ctmm::outlie(ctmmData[[i]],plot=TRUE,main=ids[i])
   plotName <- paste("outliers",ids[i],sep="")
-  filePath <- paste("output/plots/outliers/",plotName,sep="")
+  filePath <- paste("pipeline/03b_cleanLocations/temp/",plotName,sep="")
   finalName <- paste(filePath,"png",sep=".")
   dev.copy(png,finalName)
   dev.off()
@@ -126,7 +107,9 @@ subsetOutlier <- subset(gpsClean,deployment_id=="M30935")
 plotOutliers(subsetOutlier,1,nrow(subsetOutlier))
 subsetOutlier %>% 
   filter(longX> (-157.94) & longX < (-157.92) & latY < (58.95) & latY > (58.93)) # row ID 1856
-plotOutliers(subsetOutlier,1800,1880) # don't want to mess around with this one..
+plotOutliers(subsetOutlier,1800,1880)
+subsetOutlier <- subsetOutlier %>% filter(RowID!=1856)
+plotOutliers(subsetOutlier,1,nrow(subsetOutlier))
 
 # other plots look OK
 
@@ -134,20 +117,32 @@ rm(subsetOutlier,plotOutliers)
 
 #### Commit changes----
 # Restart from move object since we will have to recalculate speed and distances
-# coords.x1 and coords.x2 are the same as longX, latY columns - not sure if move package creates them?
+
+# In addition to these location outliers, remove records with DOP > 5
+# Only gets rid of 24 records (see Frair et al. 2010; https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2894963/)
+nrow(subset(gpsClean,DOP>5))
+
+# Remove some of the extra columns that appear when converting to df
+# Not sure why that happens?? Attribute names required by move obj?
 gpsClean <- as.data.frame(gpsMove)
+
 gpsClean <- gpsClean %>% 
-  filter(!(deployment_id == "M30937" & RowID == 5789 | deployment_id=="M30103" & RowID == 5778 |
-           deployment_id=="M30103" & RowID == 4894 | deployment_id == "M30929" & RowID == 2351 |
-             deployment_id=="M30930" & RowID == 3616)) %>% 
-  select(-c(coords.x1,coords.x2))
+  filter(DOP <= 5 & !(deployment_id == "M30937" & RowID == 5789 | 
+             deployment_id=="M30103" & RowID == 5778 |
+             deployment_id=="M30103" & RowID == 4894 | 
+             deployment_id == "M30929" & RowID == 2351 |
+             deployment_id=="M30930" & RowID == 3616 |
+             deployment_id=="M30935" & RowID == 1856)) %>% 
+  select(-c(coords.x1,coords.x2,optional,timestamps,trackId))
+
+# Deleted 30 rows
 
 # Convert to new move object
-gpsMove <- move(x=gpsClean$longX,y=gpsClean$latY,
+gpsMove <- move(x=gpsClean$Easting,y=gpsClean$Northing,
                 time=gpsClean$datetime,
-                data=gpsClean,proj=CRS("+proj=longlat +ellps=WGS84"),
+                data=gpsClean,proj=CRS("+init=epsg:32604"),
                 animal=gpsClean$deployment_id, sensor="gps")
 
 #### Save files----
-save(gpsMove,file="output/gps_cleanSpaceTime.Rdata")
+save(gpsMove,file="pipeline/03b_cleanLocations/cleanLocations.Rdata")
 
