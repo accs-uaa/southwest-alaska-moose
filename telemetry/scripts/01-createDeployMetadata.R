@@ -72,7 +72,7 @@ deploy %>%
 unique(deploy$deployment_id)
 
 # Export as .Rdata file
-save(deploy, file="output/deployMetadata.Rdata")
+save(deploy, file="pipleine/01_createDeployMetadata/deployMetadata.Rdata")
 
 # Export as .csv for Movebank upload
 # Movebank throws errors when certain columns are coded as NA
