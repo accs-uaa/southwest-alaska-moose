@@ -16,11 +16,11 @@ source("scripts/function-subsetIDTimeLags.R")
 #### Convert to Movebank object----
 # According to Vectronic manual (https://vectronic-aerospace.com/wp-content/uploads/2016/04/Manual_GPS-Plus-Collar-Manager-V3.11.3.pdf), Lat/Long is in WGS84. 
 # Required for calculating timeLags
-# Use Easting/Northing: much more intuitive for calculating distances and will be required for linear interpolation later on
+# Use Easting/Northing as coordinates
 
-gpsMove <- move(x=gpsData$longX,y=gpsData$latY,
+gpsMove <- move(x=gpsData$Easting,y=gpsData$Northing,
                 time=gpsData$datetime,
-                data=gpsData,proj=CRS("+proj=longlat +ellps=WGS84"),
+                data=gpsData,proj=CRS("+init=epsg:32604"),
                 animal=gpsData$deployment_id, sensor="gps")
 
 # show(gpsMove)
@@ -38,7 +38,8 @@ n.locs(gpsMove) # no of locations per individuals
 #         b) improbable distances
 #         c) improbable locations
 
-plot(gpsData$longX, gpsData$latY, xlab="Longitude", ylab="Latitude")
+plot(gpsMove$Easting, gpsMove$Northing, 
+     xlab="Easting", ylab="Northing")
 
 summary(gpsData) 
 
@@ -64,7 +65,7 @@ for (i in 1:length(ids)){
   
   hist(timeL,main=ids[i],xlab="Hours")
   plotName <- paste("timeLags",ids[i],sep="")
-  filePath <- paste("output/plots/outliers/",plotName,sep="")
+  filePath <- paste("pipeline/03a_cleanFixRate/temp/",plotName,sep="")
   finalName <- paste(filePath,"png",sep=".")
   dev.copy(png,finalName)
   dev.off()
@@ -200,12 +201,12 @@ gpsClean <- gpsData %>%
              deployment_id == "M30936" & RowID <= 8 | deployment_id == "M30937" & RowID <= 7 |
              deployment_id == "M30940" & RowID <= 7))
 
-# Total number of rows deleted: 293 (~0.3%)
+# Total number of rows deleted: 293 (~0.3%). New number of rows should be 111,206
 
 # Convert gpsClean to move object
-gpsMove <- move(x=gpsClean$longX,y=gpsClean$latY,
+gpsMove <- move(x=gpsClean$Easting,y=gpsClean$Northing,
                 time=gpsClean$datetime,
-                data=gpsClean,proj=CRS("+proj=longlat +ellps=WGS84"),
+                data=gpsClean,proj=CRS("+init=epsg:32604"),
                 animal=gpsClean$deployment_id, sensor="gps")
 
 rm(gpsData, timelagSummary)
