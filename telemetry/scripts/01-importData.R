@@ -66,7 +66,7 @@ gpsData <- gpsData %>%
   select(-dropCols)
 
 #### Export----
-save(gpsData, file="output/gps_raw.Rdata")
+save(gpsData, file="pipeline/01_importData/gps_raw.Rdata")
 
 # Clean workspace
 rm(dropCols,gpsData)
