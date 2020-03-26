@@ -7,7 +7,7 @@
 library(tidyverse)
 library(rgdal)
 
-load("output/gps_raw.Rdata") # GPS telemetry data
+load("pipeline/01_importData/gps_raw.Rdata") # GPS telemetry data
 load("output/deployMetadata.Rdata") # Deployment metadata file
 
 source("scripts/function-collarRedeploys.R")
@@ -101,4 +101,4 @@ rm(deploy)
 gpsData <- as.data.frame(gpsData)
 
 # Save as .Rdata file
-save(gpsData, file="output/gps_formatted_notCleaned.Rdata")
+save(gpsData, file="pipeline/02_formatData/gps_formatted.Rdata")
