@@ -50,4 +50,4 @@ rsconnect/
 # Ignore collar_data, output, and pipeline sub-folders in telemetry parent
 telemetry/collar_data
 telemetry/output
-telemtry/pipeline
+telemetry/pipeline
