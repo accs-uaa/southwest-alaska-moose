@@ -10,12 +10,13 @@ library(tidyverse)
 library(move)
 library(ctmm)
 
-load("output/gps_formatted_notCleaned.Rdata")
+load("pipeline/02_formatData/gps_formatted.Rdata")
 source("scripts/function-subsetIDTimeLags.R")
 
 #### Convert to Movebank object----
 # According to Vectronic manual (https://vectronic-aerospace.com/wp-content/uploads/2016/04/Manual_GPS-Plus-Collar-Manager-V3.11.3.pdf), Lat/Long is in WGS84. 
 # Required for calculating timeLags
+# Use Easting/Northing: much more intuitive for calculating distances and will be required for linear interpolation later on
 
 gpsMove <- move(x=gpsData$longX,y=gpsData$latY,
                 time=gpsData$datetime,
@@ -214,4 +215,4 @@ duplicateTimes <- getDuplicatedTimestamps(x=as.factor(gpsClean$deployment_id),ti
 rm(duplicateTimes)
 
 # Export cleaned data as movestack object- easier to work with in subsequent scripts
-save(gpsMove,file="output/gps_cleanTimeLagsOnly.Rdata")
+save(gpsMove,file="pipeline/03a_cleanFixRate/cleanFixRate.Rdata")
