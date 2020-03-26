@@ -209,11 +209,12 @@ gpsMove <- move(x=gpsClean$Easting,y=gpsClean$Northing,
                 data=gpsClean,proj=CRS("+init=epsg:32604"),
                 animal=gpsClean$deployment_id, sensor="gps")
 
-rm(gpsData, timelagSummary)
-
 #### Check for duplicated timestamps
 duplicateTimes <- getDuplicatedTimestamps(x=as.factor(gpsClean$deployment_id),timestamps=gpsClean$datetime,sensorType="gps") # none
 rm(duplicateTimes)
 
 # Export cleaned data as movestack object- easier to work with in subsequent scripts
 save(gpsMove,file="pipeline/03a_cleanFixRate/cleanFixRate.Rdata")
+
+# Clean workspace
+rm(list=ls())
