@@ -8,7 +8,7 @@ library(tidyverse)
 library(rgdal)
 
 load("pipeline/01_importData/gps_raw.Rdata") # GPS telemetry data
-load("output/deployMetadata.Rdata") # Deployment metadata file
+load("pipeline/01_createDeployMetadata/deployMetadata.Rdata") # Deployment metadata file
 
 source("scripts/function-collarRedeploys.R")
 
