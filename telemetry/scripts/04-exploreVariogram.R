@@ -6,15 +6,16 @@
 # Working through vignette: https://ctmm-initiative.github.io/ctmm/articles/variogram.html
 
 # Load packages and data----
+rm(list=ls())
 library(ctmm)
 library(tidyverse)
-load("output/gps_cleanSpaceTime.Rdata")
+load("pipeline/03c_interpolateData/mooseData.Rdata")
 
 source("scripts/function-plotVariograms.R") # calls varioPlot function
 
 # Convert to as.telemetry object
 # Stick with default projection for now, but may want to switch to a user-defined proj. with origin around Nushagak River: https://gis.stackexchange.com/questions/118125/proj4js-is-this-correct-implementation-of-azimuthal-equidistant-relative-to-an
-gpsData <- as.telemetry(gpsMove)
+gpsData <- ctmm::as.telemetry(mooseData)
 
 # Plot tracks
 # Distances are within the range shown in the vignette, where the individuals are considered as 'relatively range resident'
@@ -38,11 +39,14 @@ names(gpsDataExcluded)
 # Use ctmm.select to choose top-ranked model, which will be used to generate aKDEs
 # Do not use ctmm.fit - ctmm.fit() returns a model of the same class as the guess argument i.e. an OUF model with anisotropic covariance.
 initParam <- lapply(gpsDataExcluded[1:length(gpsDataExcluded)], function(b) ctmm.guess(b,interactive=FALSE) )
-fitMvmtModel <- lapply(1:length(gpsDataExcluded), function(i) ctmm.select(gpsDataExcluded[[i]],initParam[[i]],verbose=TRUE) )
-names(fitMvmtModel) <- names(gpsDataExcluded[1:length(gpsDataExcluded)])
+
+# Takes several hours
+fitMoveModels <- lapply(1:length(gpsDataExcluded), function(i) ctmm.select(gpsDataExcluded[[i]],initParam[[i]],verbose=TRUE) )
+
+names(fitMoveModels) <- names(gpsDataExcluded[1:length(gpsDataExcluded)])
 
 # Export results
-save(fitMvmtModel,file="output/fitMvmtModel.RData")
+save(fitMoveModels,file="pipeline/04_exploreVariogram/fitMoveModels.RData")
 
 # View top model for each individual
 lapply(fitMvmtModel,function(x) summary(x)[1]) # 
