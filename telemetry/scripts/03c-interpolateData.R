@@ -62,6 +62,8 @@ n.locs(mooseData)
 gpsData <- as.data.frame(mooseData)
 rownames(gpsData) <- seq(1,nrow(gpsData),by=1)
 
+plot(gpsData$x,gpsData$y)
+
 coords.x1 <- gpsData$coords.x1
 coords.x2 <- gpsData$coords.x2
 timestamps <- gpsData$timestamps
