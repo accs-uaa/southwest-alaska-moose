@@ -26,7 +26,7 @@ varioPlot <- function(telemList){
     
     # Zoomed out plot
     plotName <- paste(name,"zoomOut",sep="_")
-    filePath <- paste("output/plots/variograms/",plotName,sep="")
+    filePath <- paste("pipeline/04_exploreVariogram/temp/",plotName,sep="")
     finalName <- paste(filePath,"png",sep=".")
     
     plot(variog,fraction=0.65,level=level)
