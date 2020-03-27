@@ -17,19 +17,6 @@ library(tidyverse)
 
 load("pipeline/03b_cleanLocations/cleanLocations.Rdata")
 
-# Remove extraneous columns
-# Every column whose timestep is not exactly within the specified time interval (i.e. 2 hours) will get interpolated and filled with NAs
-gpsData <- as.data.frame(gpsMove)
-names(gpsData)
-
-gpsData <- gpsData %>% 
-  select(Easting,Northing,datetime,deployment_id)
-
-gpsMove <- move(x=gpsData$Easting,y=gpsData$Northing,
-                time=gpsData$datetime,
-                data=gpsData,proj=CRS("+init=epsg:32604"),
-                animal=gpsData$deployment_id, sensor="gps")
-
 # Interpolate missed fixes----
 
 # Create a mini function... For some reason lapply doesn't work directly with the interpolateTime function?
@@ -45,10 +32,10 @@ splitData <- split(gpsMove)
 interpolateData <- lapply(splitData,
                           fillMissedFixes)
 
-rm(gpsData,fillMissedFixes,splitData)
+rm(fillMissedFixes,splitData)
 
 # Convert back to moveStack object----
-# Slowly starting to understand the structure of a move object....
+# I don't understand the structure of a move object....
 mooseData <- moveStack(interpolateData)
 
 # Additional 207 records were created
@@ -59,23 +46,10 @@ n.locs(mooseData)
 
 # Those numbers makes sense seeing as approximately half of all individuals have no data for at least one entire day (12 fixes * 12 ids = 144), in addition to other missed fixes + ~35 manually inserted missed fixes when weeding out outliers
 
-gpsData <- as.data.frame(mooseData)
-rownames(gpsData) <- seq(1,nrow(gpsData),by=1)
+# Check to see that interpolated locations are within study area extent
+plot(mooseData@coords)
 
-plot(gpsData$x,gpsData$y)
-
-coords.x1 <- gpsData$coords.x1
-coords.x2 <- gpsData$coords.x2
-timestamps <- gpsData$timestamps
-trackId <- gpsData$trackId
-gpsData <- gpsData %>% select(trackId)
-
-gpsMove <- move(x=coords.x1,y=coords.x2,
-                time=timestamps,
-                proj=CRS("+init=epsg:32604"),
-                animal=trackId, sensor="gps")
-
-rm(interpolateData,mooseData,coords.x1,coords.x2,timestamps,trackId,gpsData)
+rm(interpolateData,gpsData,gpsMove)
 
 # Save object
-save(gpsMove,file="pipeline/03c_interpolateData/mooseData.Rdata")
+save(mooseData,file="pipeline/03c_interpolateData/mooseData.Rdata")
