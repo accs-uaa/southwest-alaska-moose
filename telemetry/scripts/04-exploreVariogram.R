@@ -29,3 +29,5 @@ varioPlot(gpsData)
 # We can fit a linear model like OU to see by how much we would need to coarsen our timescale for use in common analytical methods like SSF
 # internal numbers in ctmm use SI units of meters and seconds
 # Gaps in the data are acceptable and fully accounted for in both variogram estimation and model fitting. Shouldn't be an issue for us since we interpolated to create a regular time series
+
+rm(varioPlot)
