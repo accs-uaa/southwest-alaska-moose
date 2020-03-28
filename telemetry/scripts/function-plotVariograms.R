@@ -10,7 +10,7 @@ varioPlot <- function(telemList){
   # Takes a dataframe and the text you want to display
   drawPlot <- function(data, name){
     
-    variog <- variogram(data)
+    variog <- variogram(data,dt = 2 %#% "hour")
     level <- c(0.5,0.95) # 50% and 95% CIs
     xlim <- c(0,12 %#% "hour") # 0-12 hour window
     
