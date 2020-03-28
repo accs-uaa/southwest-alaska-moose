@@ -21,6 +21,8 @@ idsToExclude <- c("M30927a","M30928a", "M30928b", "M35172")
 gpsDataExcluded <- gpsData[-unlist(lapply(idsToExclude, function(x) grep(x, names(gpsData)) ) ) ]
 names(gpsDataExcluded)
 
+rm(idsToExclude)
+
 # Model selection----
 
 # Use ctmm.guess (=variogram.fit) to obtain initial "guess" parameters, which can then be passed onto to ctmm.fit
@@ -39,4 +41,18 @@ names(fitMoveModels) <- names(gpsDataExcluded[1:length(gpsDataExcluded)])
 save(fitMoveModels,file="pipeline/05a_ctmmModelSelection/fitMoveModels.RData")
 
 # View top model for each individual
-lapply(fitMoveModels,function(x) summary(x)) # 
+# Why is dof.area so low for individuals with the same number of locations?
+lapply(fitMoveModels,function(x) summary(x)) #
+
+# Plot variogram with model fit----
+
+for (i in 1:length(gpsDataExcluded)){
+id <- names(gpsDataExcluded)[[i]]
+vario <- variogram(gpsDataExcluded[[i]], dt = 2 %#% "hour")
+fitOneId<-fitMoveModels[[i]]
+plot(vario,CTMM=fitOneId,col.CTMM=c("red","purple","blue","green"),fraction=0.65,level=0.5,main=id)
+}
+
+
+xlim <- c(0,12 %#% "hour")
+plot(vario,CTMM=fitOneId,col.CTMM=c("red","purple","blue","green"),xlim=xlim,level=0.5)
