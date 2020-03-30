@@ -19,15 +19,17 @@ source("scripts/function-plotVariograms.R") # calls varioPlot function
 gpsData <- ctmm::as.telemetry(mooseData)
 
 # Plot tracks
-# Distances are within the range shown in the vignette, where the individuals are considered as 'relatively range resident'
 plot(gpsData,col=rainbow(length(gpsData)))
 
 # Plot variograms----
 varioPlot(gpsData)
 
 # Many of the zoomed in plots are non-linear, indicating continuity in the animal's velocity (from variogram vignette)
+# Most of the variograms don't fit well. Some indicate migratory or seasonal movements. I ran the variograms with uninterpolated data since the interpolation gets rid of the data stored in the DOP column, but the results were the same since location error is only taken into account during the model fitting process.
+
 # We can fit a linear model like OU to see by how much we would need to coarsen our timescale for use in common analytical methods like SSF
 # internal numbers in ctmm use SI units of meters and seconds
-# Gaps in the data are acceptable and fully accounted for in both variogram estimation and model fitting. Shouldn't be an issue for us since we interpolated to create a regular time series
+# Gaps in the data are acceptable and fully accounted for in both variogram estimation and model fitting. Shouldn't be an issue since we interpolated to create a regular time series
 
 rm(varioPlot)
+
