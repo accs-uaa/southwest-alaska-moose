@@ -35,3 +35,5 @@ st_is_longlat(moose_sf)
 # Ii get a warning about datetime but let me see if it gets screwed up in Migration Mapper
 filePath<-"pipeline/04c_exportShapefile"
 st_write(moose_sf, paste0(filePath, "/", "subsetMoose.shp"), factorsAsCharacter = TRUE, delete_layer = TRUE)
+
+rm(list=ls())
