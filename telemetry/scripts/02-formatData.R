@@ -30,7 +30,7 @@ gpsData <- gpsData %>%
 
 ## Generate Eastings and Northings----
 # This makes calculation of movement metrics easier
-coordLatLong = SpatialPoints(cbind(gpsData$longX, gpsData$latY), proj4string = CRS("+proj=longlat"))
+coordLatLong = SpatialPoints(cbind(gpsData$longX, gpsData$latY), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 coordLatLong # check that signs are correct
 
 # Transform coordinates to UTM
