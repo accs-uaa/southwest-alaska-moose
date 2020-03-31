@@ -20,9 +20,12 @@ idsToSelect<-c("M30102", "M30103", "M30894","M30935")
 mooseData <- gpsMove@data
 mooseData <- cbind(mooseData, as.data.frame(gpsMove@trackId))
 
+# Convert from POSIX.ct to character otherwise export step will throw an error
+mooseData$datetime<-as.character(mooseData$datetime)
+
 mooseData <- mooseData %>% 
   rename(deployment_id = `gpsMove@trackId`) %>% 
-  select(RowID,latY,longX,datetime,Easting,Northing,deployment_id) %>% 
+  dplyr::select(RowID,latY,longX,datetime,Easting,Northing,deployment_id) %>% 
   filter(deployment_id %in% idsToSelect)
 
 # Convert to sf object
@@ -32,7 +35,6 @@ moose_sf = st_as_sf(mooseData, coords = c("longX","latY"), crs = "+proj=longlat 
 st_is_longlat(moose_sf)
 
 # Export to shapefile----
-# Ii get a warning about datetime but let me see if it gets screwed up in Migration Mapper
 filePath<-"pipeline/04c_exportShapefile"
 st_write(moose_sf, paste0(filePath, "/", "subsetMoose.shp"), factorsAsCharacter = TRUE, delete_layer = TRUE)
 
