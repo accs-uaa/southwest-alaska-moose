@@ -9,7 +9,7 @@
 library(plyr)
 library(tidyverse)
 
-dataFiles <-list.files(file.path('data'),full.names = TRUE,pattern=".csv")
+dataFiles <- list.files(file.path('data'),full.names = TRUE,pattern=".csv")
 
 # Read in each file and combine into single dataframe
 # "No" column is not unique across all individuals, but is unique within each individual
@@ -53,7 +53,7 @@ length(unique(gpsData$CollarID))
 # Reason: No need for "earth-fixed" coordinates (https://en.wikipedia.org/wiki/ECEF). Use UTM or Lat/Long 
 
 gpsData <- gpsData %>% 
-  select(No, CollarID, UTC_Date,UTC_Time,Origin,
+  select(No, CollarID, UTC_Date,UTC_Time,
          Latitude....,Longitude....,Mort..Status,DOP,FixType,Easting,Northing)
 
 #### Export----
