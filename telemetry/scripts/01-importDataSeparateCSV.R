@@ -1,6 +1,6 @@
 # Objective: Import data from GPS collars. Combine all data files into a single dataframe that can be used for analyses. Data for each moose are stored as separate .csv files
 
-# Data were downloaded from Vectronic on 5 Nov 2019
+# Data run up to beginning of August 2019
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
@@ -64,7 +64,7 @@ gpsData <- gpsData %>%
   select(-dropCols)
 
 #### Export----
-save(gpsData, file="pipeline/01_importData/gpsRaw_5Nov2019.Rdata")
+save(gpsData, file="pipeline/01_importData/gpsRaw_Aug2019.Rdata")
 
 # Clean workspace
 rm(dropCols,gpsData)
