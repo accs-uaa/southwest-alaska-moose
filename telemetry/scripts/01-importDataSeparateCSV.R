@@ -1,13 +1,11 @@
-# Objective: Import data from GPS collars. Combine all data files into a single dataframe that can be used for analyses.
+# Objective: Import data from GPS collars. Combine all data files into a single dataframe that can be used for analyses. Data for each moose are stored as separate .csv files
+
+# Data were downloaded from Vectronic on 5 Nov 2019
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
-# Last updated: 29 Jan 2020
-
 # Load packages and data files----
-# Data were downloaded from Vectronic on 5 Nov 2019
-# Data for each moose are stored as separate .csv files
 library(plyr)
 library(tidyverse)
 
