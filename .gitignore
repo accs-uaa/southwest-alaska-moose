@@ -47,7 +47,7 @@ rsconnect/
 *.xml
 *.shx
 
-# Ignore collar_data, output, and pipeline sub-folders in telemetry parent
-telemetry/collar_data
+# Ignore data, output, and pipeline sub-folders in telemetry parent
+telemetry/data
 telemetry/output
 telemetry/pipeline
