@@ -28,7 +28,7 @@ gpsData <- gpsData %>%
   filter(longX < -152)
 
 #### Generate Eastings and Northings----
-# Not always required depending on data structure
+# Even if present in original data, I would recalculate them since they seem to spotty. Have NAs even though lat/long are known.
 
 # This makes calculation of movement metrics easier
 coordLatLong = SpatialPoints(cbind(gpsData$longX, gpsData$latY), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
@@ -40,6 +40,8 @@ coordUTM <- spTransform(coordLatLong, CRS("+init=epsg:32604"))
 coordUTM <- as.data.frame(coordUTM)
 gpsData$Easting <- coordUTM[,1]
 gpsData$Northing <- coordUTM[,2]
+
+summary(gpsData)
 rm(coordUTM,coordLatLong)
 
 
