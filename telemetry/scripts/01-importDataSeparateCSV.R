@@ -1,6 +1,6 @@
 # Objective: Import data from GPS collars. Combine all data files into a single dataframe that can be used for analyses. Data for each moose are stored as separate .csv files
 
-# Data run up to beginning of August 2019
+# Last data download: 30 Mar 2020 by Kassie
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
@@ -9,32 +9,28 @@
 library(plyr)
 library(tidyverse)
 
-dataFiles <-list.files(file.path('collar_data/gps'),full.names = TRUE,pattern=".csv")
+dataFiles <-list.files(file.path('data'),full.names = TRUE,pattern=".csv")
 
 # Read in each file and combine into single dataframe
 # "No" column is not unique across all individuals, but is unique within each individual
 # Sorted in decreasing order? (newest to oldest)
-# Change "No" column so that numbers go from oldest to newest. Rename as RowID
+# Check order of "No" column- sometimes it goes from newest to oldest instead and arrange would have to be coded as -No.
 
 for (i in 1:length(dataFiles)) {
   f <- dataFiles[i]
   
   temp <- read.csv(f,stringsAsFactors = FALSE)
-  # print(max(temp$No)+1==length(temp$No))
   
   temp <- temp %>% 
-  arrange(-No)
+  arrange(No)
   
   if (i == 1) {
     gpsData <- temp
     
   } else {
-    gpsData <- rbind(gpsData, temp)
+    gpsData <- plyr::rbind.fill(gpsData, temp)
   }
 }
-
-# Clean workspace
-rm(f,i,temp,dataFiles)
 
 # Remove extra columns----
 names(gpsData)
@@ -56,15 +52,12 @@ length(unique(gpsData$CollarID))
 # 6. No.1 and No.2. Reason: Duplicate from No
 # Reason: No need for "earth-fixed" coordinates (https://en.wikipedia.org/wiki/ECEF). Use UTM or Lat/Long 
 
-dropCols <- c("No","X3D_Error..m.",
-               "SCTS_Date", "SCTS_Time",names(gpsData)[c(19:43,45:47,49:50)],
-               "ECEF_X..m.","ECEF_Y..m.","ECEF_Z..m.")
-
 gpsData <- gpsData %>% 
-  select(-dropCols)
+  select(No, CollarID, UTC_Date,UTC_Time,Origin,
+         Latitude....,Longitude....,Mort..Status,DOP,FixType,Easting,Northing)
 
 #### Export----
-save(gpsData, file="pipeline/01_importData/gpsRaw_Aug2019.Rdata")
+save(gpsData, file="pipeline/01_importData/gpsRaw.Rdata")
 
 # Clean workspace
-rm(dropCols,gpsData)
+rm(list=ls())
