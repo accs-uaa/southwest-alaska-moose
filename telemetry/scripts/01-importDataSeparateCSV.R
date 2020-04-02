@@ -51,7 +51,7 @@ length(unique(gpsData$CollarID))
 # Reason: No need for "earth-fixed" coordinates (https://en.wikipedia.org/wiki/ECEF). Use UTM or Lat/Long 
 
 gpsData <- gpsData %>% 
-  select(No, CollarID, UTC_Date,UTC_Time,
+  select(No, CollarID, UTC_Date,UTC_Time, LMT_Date, LMT_Time,
          Latitude....,Longitude....,Mort..Status,DOP,FixType,Easting,Northing)
 
 #### Export----
