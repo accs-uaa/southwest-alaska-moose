@@ -19,7 +19,6 @@ load("pipeline/01_createDeployMetadata/deployMetadata.Rdata") # Deployment metad
 # 3. Combine date and time in a single column ("datetime")
 ## Use UTC time zone to conform with Movebank requirements
 # 4. Rename Latitude.... ; Longitude.... ; Temp...C. ; Height..m.
-
 gpsData <- gpsData %>% 
   dplyr::mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), 
                                format="%m/%d/%Y %I:%M:%S %p",tz="UTC")) %>% 
@@ -81,9 +80,13 @@ length(unique(gpsData$deployment_id)) # Should be 24
 rm(gpsRedeployOnly,gpsUniqueOnly,redeployList,makeRedeploysUnique,tagRedeploy)
 
 
-#### Create unique row number----
+#### Additional formatting----
+
+# Create unique row number
 # For each device, according to date/time
 # Note that RowID will be unique within but not across individuals
+
+# Drop unnecessary columns
 
 gpsData <- gpsData %>% 
 group_by(deployment_id) %>% 
@@ -91,15 +94,14 @@ group_by(deployment_id) %>%
   dplyr::mutate(RowID = row_number(datetime)) %>% 
   arrange(deployment_id,RowID) %>% 
   ungroup() %>% 
+  dplyr::select(-c(No,tagStatus,LMT_Date,LMT_Time,tag_id)) %>% 
   dplyr::select(RowID,everything())
  
-
 # Join with deployment metadata to get individual animal ID
 # Useful when uploading into Movebank.
 deploy <- deploy %>% dplyr::select(animal_id,deployment_id)
-gpsData <- left_join(gpsData,deploy,by="deployment_id")
 
-rm(deploy)
+gpsData <- left_join(gpsData,deploy,by="deployment_id")
 
 # Coerce back to dataframe (needed for move package)
 gpsData <- as.data.frame(gpsData)
