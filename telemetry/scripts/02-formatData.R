@@ -1,16 +1,16 @@
-# Objective: Format data: Rename columns, recode collar ID to take into account redeployments.
+# Objective: Format data: Rename columns, recode collar ID to account for redeployments.
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
 #### Load packages and data----
-library(tidyverse)
-library(rgdal)
-
-load("pipeline/01_importData/gps_raw.Rdata") # GPS telemetry data
-load("pipeline/01_createDeployMetadata/deployMetadata.Rdata") # Deployment metadata file
+source("scripts/init.R")
 
 source("scripts/function-collarRedeploys.R")
+
+load("pipeline/01_importData/gpsRaw.Rdata") # GPS telemetry data
+load("pipeline/01_createDeployMetadata/deployMetadata.Rdata") # Deployment metadata file
+
 
 #### Format GPS data----
 
@@ -23,12 +23,14 @@ source("scripts/function-collarRedeploys.R")
 gpsData <- gpsData %>% 
   dplyr::mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), 
                                format="%m/%d/%Y %I:%M:%S %p",tz="UTC")) %>% 
-  dplyr::rename(longX = "Longitude....", latY = "Latitude....", tempC = "Temp...C.",
-         height_m = "Height..m.", tag_id = CollarID, mortalityStatus = "Mort..Status") %>% 
+  dplyr::rename(longX = "Longitude....", latY = "Latitude....", tag_id = CollarID, 
+                mortalityStatus = "Mort..Status") %>% 
   filter(!(is.na(longX) | is.na(latY) | is.na(UTC_Date))) %>% 
   filter(longX < -152)
 
-## Generate Eastings and Northings----
+#### Generate Eastings and Northings----
+# Not always required depending on data structure
+
 # This makes calculation of movement metrics easier
 coordLatLong = SpatialPoints(cbind(gpsData$longX, gpsData$latY), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 coordLatLong # check that signs are correct
@@ -40,6 +42,7 @@ coordUTM <- as.data.frame(coordUTM)
 gpsData$Easting <- coordUTM[,1]
 gpsData$Northing <- coordUTM[,2]
 rm(coordUTM,coordLatLong)
+
 
 #### Correct redeploys----
 
@@ -80,7 +83,7 @@ rm(gpsRedeployOnly,gpsUniqueOnly,redeployList,makeRedeploysUnique,tagRedeploy)
 
 #### Create unique row number----
 # For each device, according to date/time
-# Note that RowID is now unique within but not across individuals
+# Note that RowID will be unique within but not across individuals
 
 gpsData <- gpsData %>% 
 group_by(deployment_id) %>% 
@@ -95,10 +98,13 @@ group_by(deployment_id) %>%
 # Useful when uploading into Movebank.
 deploy <- deploy %>% dplyr::select(animal_id,deployment_id)
 gpsData <- left_join(gpsData,deploy,by="deployment_id")
+
 rm(deploy)
 
 # Coerce back to dataframe (needed for move package)
 gpsData <- as.data.frame(gpsData)
 
 # Save as .Rdata file
-save(gpsData, file="pipeline/02_formatData/gps_formatted.Rdata")
+save(gpsData, file="pipeline/02_formatData/formattedData.Rdata")
+
+rm(list = ls())
