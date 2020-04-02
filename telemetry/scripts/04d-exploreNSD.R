@@ -22,6 +22,8 @@ timestamps <- gpsMove@timestamps
 dataLT <- as.ltraj(xy,timestamps,ids)
 names(dataLT) <- unique(ids)
 
+rm(mooseData,xy,ids,timestamps,gpsMove)
+
 # Plot Net Squared Displacement----
 plotNSD <- function(telemList){
   require(ggplot2)
@@ -125,3 +127,5 @@ plotMSD <- function(data){
 
 plotMSD(dataLT)
 
+# Clean workspace----
+rm(plotMSD,plotNSD,dataLT)
