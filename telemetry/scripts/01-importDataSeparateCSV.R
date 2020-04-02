@@ -6,9 +6,7 @@
 #         Alaska Center for Conservation Science
 
 # Load packages and data files----
-library(plyr)
-library(tidyverse)
-
+source("scripts/init.R")
 dataFiles <- list.files(file.path('data'),full.names = TRUE,pattern=".csv")
 
 # Read in each file and combine into single dataframe
