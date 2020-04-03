@@ -2,17 +2,16 @@
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
+# Note: I have reran this script with the newest (Mar/Apr 2020 data)
+# The number of outliers detected in the Examine distance outliers section stayed the same, but I would have to rerun + relook at the ctmm plots to see if any new outliers came up (since August 2019).
+# Since I'm still in the exploratory phase, I'm not sure if it's worth spending half a day combing through this plots again right now. 
+
 # Load data and packages----
-library(move)
-library(ctmm)
-library(tidyverse)
+source("scripts/init.R")
+source("scripts/function-plotOutliers.R")
 
 load("pipeline/03a_cleanFixRate/cleanFixRate.Rdata")
 
-source("scripts/function-plotOutliers.R")
-
-# Convert to dataframe for plotting
-gpsClean <- as.data.frame(gpsMove)
 
 #### Calculate movement metrics----
 
@@ -20,10 +19,18 @@ gpsClean <- as.data.frame(gpsMove)
 # Units are in meters
 # Not sure what a reasonable sustained (2-hour speed) is but... moose can run. 
 # Covering distances of 10 km in two hours is probably not ridiculous
-gpsClean$distanceMeters <- unlist(lapply(move::distance(gpsMove), c, NA))
-summary(gpsClean$distanceMeters)
+gpsMove <- move(x=gpsClean$Easting,y=gpsClean$Northing,
+                time=gpsClean$datetime,
+                data=gpsClean,proj=CRS("+init=epsg:32604"),
+                animal=gpsClean$deployment_id, sensor="gps")
 
-which(gpsClean$distanceMeters>8000)
+gpsClean$distanceMeters <- unlist(lapply(move::distance(gpsMove), c, NA))
+
+summary(gpsClean$distanceMeters) # NAs should equal number of individuals
+
+#### Examine distance outliers----
+
+which(gpsClean$distanceMeters>8000) # 5 entries
 
 # Plot some of these to see if anything ~~fishy~~ is going on
 plotOutliers(gpsClean,18105,18140) # looks fine
@@ -40,7 +47,7 @@ plotOutliers(temp,1,40) # looks good now.
 
 rm(temp)
 
-## Speeds
+#### Examine speed outliers----
 # Units are in m/s
 
 gpsClean$speedKmh <- (unlist(lapply(move::speed(gpsMove),c, NA )))*3.6
@@ -51,7 +58,7 @@ summary(gpsClean$speedKmh) # Highest speeds are related to the very high distanc
 # High-speed segments are in blue, while distant locations are in red
 # The plots identify other movement outliers, but I can't really figure out how to isolate problematic data points.
 
-ctmmData <- as.telemetry(gpsMove)
+ctmmData <- ctmm:as.telemetry(gpsMove)
 ids <- names(ctmmData)
 
 # Grab some coffee in the break room while this runs
@@ -119,12 +126,9 @@ rm(subsetOutlier,plotOutliers)
 # Restart from move object since we will have to recalculate speed and distances
 
 # In addition to these location outliers, remove records with DOP > 5
-# Only gets rid of 24 records (see Frair et al. 2010; https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2894963/)
-nrow(subset(gpsClean,DOP>5))
-
-# Remove some of the extra columns that appear when converting to df
-# Not sure why that happens?? Attribute names required by move obj?
-gpsClean <- as.data.frame(gpsMove)
+# See Frair et al. 2010; https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2894963/
+nrow(subset(gpsClean,DOP>5)) # 
+# Only gets rid of 44 records 
 
 gpsClean <- gpsClean %>% 
   filter(DOP <= 5 & !(deployment_id == "M30937" & RowID == 5789 | 
@@ -132,17 +136,11 @@ gpsClean <- gpsClean %>%
              deployment_id=="M30103" & RowID == 4894 | 
              deployment_id == "M30929" & RowID == 2351 |
              deployment_id=="M30930" & RowID == 3616 |
-             deployment_id=="M30935" & RowID == 1856)) %>% 
-  select(-c(coords.x1,coords.x2,optional,timestamps,trackId))
-
-# Deleted 30 rows
-
-# Convert to new move object
-gpsMove <- move(x=gpsClean$Easting,y=gpsClean$Northing,
-                time=gpsClean$datetime,
-                data=gpsClean,proj=CRS("+init=epsg:32604"),
-                animal=gpsClean$deployment_id, sensor="gps")
+             deployment_id=="M30935" & RowID == 1856))
+# Deleted 50 rows
 
 #### Save files----
-save(gpsMove,file="pipeline/03b_cleanLocations/cleanLocations.Rdata")
+save(gpsClean,file="pipeline/03b_cleanLocations/cleanLocations.Rdata")
 
+# Clean workspace
+rm(list=ls())
