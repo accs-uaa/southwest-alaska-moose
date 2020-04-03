@@ -7,7 +7,7 @@ load("pipeline/03b_cleanLocations/cleanLocations.Rdata")
 
 # Create tlocoh object
 coords<-gpsClean[,9:10]
-data <- xyt.lxy(xy=coords,dt=gpsClean$datetime,proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"),id=gpsClean$deployment_id,dup.dt.check = TRUE)
+data <- xyt.lxy(xy=coords,dt=gpsClean$datetime,proj4string=CRS("+init=epsg:32604"),id=gpsClean$deployment_id,dup.dt.check = TRUE)
 
 rm(coords)
 
@@ -16,7 +16,6 @@ rm(coords)
 # Plotting parameters
 # Generate a color for each individual
 # Remove black and grays - hard to see dark shades in GE
-
 allColors <- colors(distinct = TRUE)
 allColors <- allColors[which(!grepl("gray|black",allColors))]
 set.seed(52)
