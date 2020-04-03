@@ -5,24 +5,18 @@
 
 # Load packages and data----
 rm(list=ls())
-library(adehabitatLT)
-library(tidyverse)
-library(zoo)
+source("scripts/init.R")
 load("pipeline/03b_cleanLocations/cleanLocations.Rdata")
 
 # Create spatial object----
 
-# Convert move object to a data.frame 
-# Testing stuff to figure out the best way to deal with move<-->data.frame conversion
-mooseData <- gpsMove@data
-xy <- gpsMove@coords
-ids <- gpsMove@trackId
-timestamps <- gpsMove@timestamps
+# Convert data.frame to adehabitat ltraj object
+coords<-gpsClean[,9:10]
+dataLT <- as.ltraj(xy = coords, date = gpsClean$datetime, id = gpsClean$deployment_id)
 
-dataLT <- as.ltraj(xy,timestamps,ids)
-names(dataLT) <- unique(ids)
+names(dataLT) <- unique(gpsClean$deployment_id)
 
-rm(mooseData,xy,ids,timestamps,gpsMove)
+rm(coords,gpsClean)
 
 # Plot Net Squared Displacement----
 plotNSD <- function(telemList){
@@ -75,7 +69,6 @@ plotNSD(dataLT)
 # for now, assuming even two-hour fix rate, want a rolling mean to be taken every 12 per day * 7 days = 84 observations
 # rollapplyr defaults to align="right". means that the mean is calculated based on the observation + previous timesteps only
 # partial = TRUE means that a rolling mean is calculated even though no. of obs < specified width (otherwise the first value for the rolling mean would start at the nth observation and all others would be dropped or NA if fill=NA)
-
 plotMSD <- function(data){
   require(ggplot2)
   require(zoo)
@@ -128,4 +121,4 @@ plotMSD <- function(data){
 plotMSD(dataLT)
 
 # Clean workspace----
-rm(plotMSD,plotNSD,dataLT)
+rm(list=ls())
