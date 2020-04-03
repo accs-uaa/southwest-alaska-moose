@@ -136,7 +136,8 @@ gpsClean <- gpsClean %>%
              deployment_id=="M30103" & RowID == 4894 | 
              deployment_id == "M30929" & RowID == 2351 |
              deployment_id=="M30930" & RowID == 3616 |
-             deployment_id=="M30935" & RowID == 1856))
+             deployment_id=="M30935" & RowID == 1856)) %>% 
+  dplyr::select(-distanceMeters)
 # Deleted 50 rows
 
 #### Save files----
