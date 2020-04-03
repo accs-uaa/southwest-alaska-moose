@@ -6,15 +6,14 @@
 #### Load data and packages----
 rm(list = ls())
 
-library(tidyverse)
-library(move)
-library(ctmm)
-
-load("pipeline/02_formatData/gps_formatted.Rdata")
+source("scripts/init.R")
 source("scripts/function-subsetIDTimeLags.R")
 
-#### Convert to Movebank object----
+load("pipeline/02_formatData/formattedData.Rdata")
+
+#### Calculate time lags----
 # According to Vectronic manual (https://vectronic-aerospace.com/wp-content/uploads/2016/04/Manual_GPS-Plus-Collar-Manager-V3.11.3.pdf), Lat/Long is in WGS84. 
+# Convert to move object
 # Required for calculating timeLags
 # Use Easting/Northing as coordinates
 
@@ -22,6 +21,7 @@ gpsMove <- move(x=gpsData$Easting,y=gpsData$Northing,
                 time=gpsData$datetime,
                 data=gpsData,proj=CRS("+init=epsg:32604"),
                 animal=gpsData$deployment_id, sensor="gps")
+# Will throw a warning if there are any records with NA as coordinates
 
 # show(gpsMove)
 # show(split(gpsMove))
@@ -38,7 +38,7 @@ n.locs(gpsMove) # no of locations per individuals
 #         b) improbable distances
 #         c) improbable locations
 
-plot(gpsMove$Easting, gpsMove$Northing, 
+plot(gpsData$Easting, gpsData$Northing, 
      xlab="Easting", ylab="Northing")
 
 summary(gpsData) 
@@ -49,7 +49,7 @@ summary(gpsData)
 
 # Calculate time lags between locations
 timeLags <- move::timeLag(gpsMove, units='hours')
-ids <- unique(gpsData$deployment_id)
+ids <- unique(gpsMove@trackId)
 
 # Generate plots and quantitative summary
 timelagSummary <- data.frame(row.names = ids)
@@ -78,7 +78,7 @@ rm(plotName,filePath,finalName,i,timeL)
 
 # Basically all of them have problems.
 
-# min goes from 1.95 to 0.44 and max goes from 2.05 to 3.99, so thresholds don't matter too much
+summary(timelagSummary)
 
 # investigating... M30102
 subsetID <- subsetTimeLags("M30102",1.95,2.05) # nothing, good to go.
@@ -173,7 +173,11 @@ subsetID <- subsetTimeLags("M30937",1.95,2.05)
 View(subsetID[1:12,]) # 1. Delete start (n=7). Only missing three more scattered throughout data set.
 
 # investigating... M30938
-subsetID <- subsetTimeLags("M30938",1.95,2.05) # good to go
+subsetID <- subsetTimeLags("M30938",1.95,2.05)
+View(subsetID[6985:7010,])
+# Mortality not indicated in my version of the deployment datasheet but it looks like this individual died on 11/21/2019 7:00:28 AM (UTC)
+# Remove everything after Row ID 6991
+
 
 # investigating... M30939
 subsetID <- subsetTimeLags("M30939",1.95,2.05) # Missing a couple of non-consecutive fixes
@@ -183,8 +187,7 @@ subsetID <- subsetTimeLags("M30940",1.95,2.05)
 View(subsetID[1:12,]) # 1. Delete start (n=7). Only missing two more. 
 
 # investigating... M35172
-subsetID <- subsetTimeLags("M35172",1.95,2.05)
-which(timeL>2.05) # Only missing one fix
+subsetID <- subsetTimeLags("M35172",1.95,2.05) # Only missing two fixes
 
 # investigating... M35173
 subsetID <- subsetTimeLags("M35173",1.95,2.05) # good to go
@@ -199,22 +202,19 @@ gpsClean <- gpsData %>%
              deployment_id == "M30928a" & RowID > 519 |
              deployment_id == "M30931" & RowID <= 5 | deployment_id == "M30935" & RowID <= 5 | 
              deployment_id == "M30936" & RowID <= 8 | deployment_id == "M30937" & RowID <= 7 |
+             deployment_id == "M30938" & RowID > 6991 |
              deployment_id == "M30940" & RowID <= 7))
 
-# Total number of rows deleted: 293 (~0.3%). New number of rows should be 111,206
+# Total number of rows deleted: 
+nrow(gpsData)-nrow(gpsClean)
+(nrow(gpsData)-nrow(gpsClean))/nrow(gpsData)*100 # percentage
+# 1,597 records from M30938-- mortality
 
-# Convert gpsClean to move object
-gpsMove <- move(x=gpsClean$Easting,y=gpsClean$Northing,
-                time=gpsClean$datetime,
-                data=gpsClean,proj=CRS("+init=epsg:32604"),
-                animal=gpsClean$deployment_id, sensor="gps")
+#### Check for duplicated timestamps----
+getDuplicatedTimestamps(x=as.factor(gpsClean$deployment_id),timestamps=gpsClean$datetime,sensorType="gps") # none
 
-#### Check for duplicated timestamps
-duplicateTimes <- getDuplicatedTimestamps(x=as.factor(gpsClean$deployment_id),timestamps=gpsClean$datetime,sensorType="gps") # none
-rm(duplicateTimes)
-
-# Export cleaned data as movestack object- easier to work with in subsequent scripts
-save(gpsMove,file="pipeline/03a_cleanFixRate/cleanFixRate.Rdata")
+# Export cleaned data 
+save(gpsClean,file="pipeline/03a_cleanFixRate/cleanFixRate.Rdata")
 
 # Clean workspace
 rm(list=ls())
