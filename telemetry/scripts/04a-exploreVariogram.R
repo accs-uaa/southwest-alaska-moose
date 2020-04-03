@@ -7,22 +7,30 @@
 #         Alaska Center for Conservation Science
 
 # Load packages and data----
-rm(list=ls())
-library(ctmm)
-load("pipeline/03c_interpolateData/mooseData.Rdata")
-
+source("scripts/init.R")
 source("scripts/function-plotVariograms.R") # calls varioPlot function
+load("pipeline/03b_cleanLocations/cleanLocations.Rdata")
 
 # Prepare and explore data----
 # Convert to telemetry object
 # Stick with default projection for now, but may want to switch to a user-defined proj. with origin around Nushagak River: https://gis.stackexchange.com/questions/118125/proj4js-is-this-correct-implementation-of-azimuthal-equidistant-relative-to-an
-gpsData <- ctmm::as.telemetry(mooseData)
+gpsData <- gpsClean %>% 
+  dplyr::select(RowID,latY,longX,Easting, Northing,
+                DOP,FixType,datetime,deployment_id)
+
+gpsData <- move(x=gpsData$Easting,y=gpsData$Northing,
+                time=gpsData$datetime,
+                data=gpsData,proj=CRS("+init=epsg:32604"),
+                animal=gpsData$deployment_id, sensor="gps")
+
+gpsData <- ctmm::as.telemetry(gpsData,projection="+init=epsg:32604")
 
 # Plot tracks
 plot(gpsData,col=rainbow(length(gpsData)))
 
 # Plot variograms----
 varioPlot(gpsData)
+dev.off()
 
 # Many of the zoomed in plots are non-linear, indicating continuity in the animal's velocity (from variogram vignette)
 # Most of the variograms don't fit well. Some indicate migratory or seasonal movements. I ran the variograms with uninterpolated data since the interpolation gets rid of the data stored in the DOP column, but the results were the same since location error is only taken into account during the model fitting process.
