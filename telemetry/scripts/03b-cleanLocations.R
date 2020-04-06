@@ -125,20 +125,15 @@ rm(subsetOutlier,plotOutliers)
 #### Commit changes----
 # Restart from move object since we will have to recalculate speed and distances
 
-# In addition to these location outliers, remove records with DOP > 5
-# See Frair et al. 2010; https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2894963/
-nrow(subset(gpsClean,DOP>5)) # 
-# Only gets rid of 44 records 
-
 gpsClean <- gpsClean %>% 
-  filter(DOP <= 5 & !(deployment_id == "M30937" & RowID == 5789 | 
+  filter(!(deployment_id == "M30937" & RowID == 5789 | 
              deployment_id=="M30103" & RowID == 5778 |
              deployment_id=="M30103" & RowID == 4894 | 
              deployment_id == "M30929" & RowID == 2351 |
              deployment_id=="M30930" & RowID == 3616 |
              deployment_id=="M30935" & RowID == 1856)) %>% 
   dplyr::select(-distanceMeters)
-# Deleted 50 rows
+# Deleted 6 rows
 
 #### Save files----
 save(gpsClean,file="pipeline/03b_cleanLocations/cleanLocations.Rdata")
