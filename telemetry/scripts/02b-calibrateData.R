@@ -1,4 +1,4 @@
-# Objective: See if we can use existing data to calibrate telemetry error.
+# Objective: Calibrate telemetry error.
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
@@ -10,8 +10,10 @@ rm(list = ls())
 source("scripts/init.R")
 load("pipeline/01_importData/gpsRaw.Rdata") # GPS telemetry data
 
-#### Explore potential calibration data----
-# Several IDs were recording when they were at the Vectronic factory in Berlin
+#### Explore calibration data----
+# Collars were recording when they were at the Vectronic factory in Berlin (52.5°N, 13.4°E)
+# Filter these out to see if we can use them in a calibration model
+
 test <- gpsData %>% 
   dplyr::mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), format="%m/%d/%Y %I:%M:%S %p",tz="UTC")) %>% 
   dplyr::rename(location.long = "Longitude....", location.lat = "Latitude....", tag_id = CollarID, 
@@ -25,27 +27,30 @@ plot(test$location.lat,test$location.long)
 
 # Convert to as.telemetry object
 # Use UTM projection for Germany: https://spatialreference.org/ref/epsg/wgs-84-utm-zone-33n/
-# Need to read up on DOP value used in collars. Combo of horizontal and vertical?
+# Need to read up on DOP value used in collars. Combo of horizontal and vertical? Emailed Vectronic on 6 Apr 2020
 calibTestData <- as.telemetry(test,timezone="UTC",projection=CRS("+init=epsg:32633"))
 
 names(calibTestData)
 
-plot(calibTestData[3:4],col=rainbow(2)) # some IDs look way off and I wonder if the collars were moved. For now, just stick to IDs whose plots don't have any huge outliers. Not trying to fudge the numbers here but results make a lot more sense when certain IDs are omitted
+lapply(calibTestData, function(x) plot(x,col=rainbow(2))) # some IDs look way off and I wonder if the collars were moved while they were recording. For now, just stick to IDs whose plots don't have any huge outliers. Not trying to fudge the numbers here but results make a lot more sense when certain IDs are omitted
 
-# Limit to only a few IDs for now
+#### Fit data to calibration model----
+
+# Use only IDs with good-looking plots
 test <- test %>% 
   filter(tag_id == "30104" | tag_id == "30105" | tag_id == "30928" |
            tag_id == "30931" | tag_id == "30933" | tag_id == "30938" |
          tag_id == "35173")
 
-calibTestData <- as.telemetry(test,timezone="UTC",projection=CRS("+init=epsg:32633"))
+unique(test$class)
+# Problem: only have validated 3D class
+# Whereas our moose dataset has three fix types: val. GPS-3D, GPS-3D, GPS-2D
+# So we can't apply class-specific (if present) location calibration
 
-#### Fit data to calibration model----
-# Estimated errors are actually a lot higher than I would expect
-# Problem:only have validated 3D class
-# Moose dataset has three fix types: val. GPS-3D, GPS-3D, GPS-2D
+calibTestData <- as.telemetry(test,timezone="UTC",projection=CRS("+init=epsg:32633"))
 calibModel <- uere.fit(calibTestData)
 summary(calibModel)
+# Estimated errors are slightly higher than I would expect
 
 #### Model selection----
 # Unfortunately we have no variation in "class" but we can see if calibrated data performs better than data with no DOP information
@@ -57,17 +62,11 @@ summary(list(DOP=calibModel,noDOP=modelFit.noDOP)) # Model that takes DOP into a
 
 rm(gpsData)
 
+# As a check, we could use data from M30938, RowID >= 6991 to see if estimated errors are similar. This is a mortality (so no movement) and the collars was known to have been left outside during this time. Estimated errors are similar.
 
-#### Add telemetry errors to moose data----
-# Probably want to do this before identifying and removing outliers
+#### Export UERE data----
+# This can then be appended to as.telemetry objects prior to analyses
 
-load("pipeline/02_formatData/formattedData.Rdata")
+save(calibModel, file="pipeline/02b_calibrateData/uereModel.Rdata")
 
-gpsData <- gpsData %>% 
-  rename(location.long = longX, location.lat = latY, class = FixType)
-
-calibData <- as.telemetry(gpsData,timezone="UTC",projection = CRS("+init=epsg:32604"))
-
-uere(calibData) <- calibModel
-names(calibData[[1]])
-plot(calibData[[3]],error=2, xlim=c(558000,560000))
+rm(list=ls())
