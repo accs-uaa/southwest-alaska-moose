@@ -34,7 +34,7 @@ initParam <- lapply(gpsDataExcluded[1:length(gpsDataExcluded)], function(b) ctmm
 # Takes ~3 hours to run
 fitMoveModels <- lapply(1:length(gpsDataExcluded), function(i) ctmm.select(gpsDataExcluded[[i]],initParam[[i]],verbose=TRUE) )
 
-# Need to check if doing this makes sense?? Hold-over from previous iteration of the code where I wrongly used ctmm.fit
+# Add names to list items
 names(fitMoveModels) <- names(gpsDataExcluded[1:length(gpsDataExcluded)])
 
 # Export results
