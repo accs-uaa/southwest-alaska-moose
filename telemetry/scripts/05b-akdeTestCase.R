@@ -69,13 +69,16 @@ plot(gpsData,UD=rangeEstOU,xlim=plotExtent$x,ylim=plotExtent$y)
 title("weighted OU AKDE for M30935")
 
 #### Split data by years ----
-# Check timestamp here--- using 1 Jan gives me some timestamps from that date
+# Check timestamp here--- using 1 Jan gives me some timestamps from that date. filter function is using LMT instead of UTC spec.
 # Playing around with data... 
+# How would HR estimates change if we were to start July 1? can only see that for 2018-2019 period, but let's run it anyway
+
 data2018 <- gpsData %>% 
-  filter(timestamp>"2018-04-01 00:00:00" & timestamp < "2019-04-01 00:00:00")
+  filter(timestamp>"2018-07-01" & timestamp < "2019-07-01")
+summary(data2018$timestamp)
 
 data2019 <- gpsData %>% 
-  filter(timestamp>="2019-04-01 00:00:00" & timestamp < "2020-04-01 00:00:00")
+  filter(timestamp>="2019-07-01 00:00:00" & timestamp < "2020-07-01 00:00:00")
 
 data2018 <- ctmm::as.telemetry(data2018,timezone="UTC",projection=CRS("+init=epsg:32604"))
 data2019 <- ctmm::as.telemetry(data2019,timezone="UTC",projection=CRS("+init=epsg:32604"))
@@ -98,7 +101,6 @@ lapply(fitYearlyModels,function(x) summary(x))
 
 
 # Plot variogram with model fit----
-
 for (i in 1:length(yearlyData)){
   id <- names(yearlyData)[[i]]
   vario <- variogram(yearlyData[[i]], dt = 2 %#% "hour")
@@ -110,16 +112,18 @@ rm(fitOneId, i, id)
 #### Generate AKDE ----
 ouf2018 <- fitYearlyModels[[1]]$`OUF anisotropic`
 ouf2019 <- fitYearlyModels[[2]]$`OUF anisotropic`
-
+oufJuly2018 <- fitYearlyModels[[1]]$`OUF anisotropic`
+oufJuly2019 <- fitYearlyModels[[2]]$`OUF anisotropic`
 # Choose weights = TRUE because sampling interval may not always be exactly two hours since we're using uninterpolated data
 hr2018 <- akde(data2018,CTMM=ouf2018,weights=TRUE)
 hr2019 <- akde(data2019,CTMM = ouf2019,weights=TRUE)
-
+hr2018 <- akde(data2018,CTMM=oufJuly2018,weights=TRUE)
+hr2019 <- akde(data2019,CTMM = oufJuly2019,weights=TRUE)
 # Calculate extent for plotting
 plotExtent <- extent(list(ouf2018,ouf2019))
 
-summary(hr2018)
-summary(hr2019)
+summary(hr2018) # est size is 21.6 sq km (16.0 - 28.0)
+summary(hr2019) # est size is 14.1 (11.4 - 17.0)
 
 #### Plot aKDE ----
 # Use locations for both years to see how well the model fits when data are withheld
@@ -128,3 +132,6 @@ title("M30935 2018")
 
 plot(gpsData,UD=hr2019,xlim=plotExtent$x,ylim=plotExtent$y)
 title("M30935 2019")
+
+hrBothYears <- list("2018"=hr2018,"2019"=hr2019)
+overlap(hrBothYears) # doesn't work
