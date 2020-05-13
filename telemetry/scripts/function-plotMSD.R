@@ -14,6 +14,7 @@
 plotMSD <- function(data){
   require(ggplot2)
   require(zoo)
+  require(lubridate)
 
   listToSeq <- lapply(data, function(x)as.data.frame(x, stringsAsFactors = FALSE))
 
@@ -21,7 +22,9 @@ plotMSD <- function(data){
     NSD <- data$R2n * 0.000001
     date <- data$date
     zooObj <- zoo(NSD,date)
-
+    startDate <- as.character(month(date[1],label=TRUE,abbr=TRUE))
+    startYear <- as.character(year(date[1]))
+    startMonth <- as.character(month(date[1]))
     MSD <- rollapplyr(zooObj,width=84,partial=TRUE,FUN = mean)
     MSD <- coredata(MSD)
 
@@ -37,12 +40,13 @@ plotMSD <- function(data){
                        date_minor_breaks = "1 month",
                        date_labels = "%Y %b"
       ) +
-      ggtitle(paste("Mean squared displacement for",name)) +
+      ggtitle(paste("Mean squared displacement for",name,"\n",
+                    "Start date: 01",startDate)) +
       theme_minimal() +
       theme(plot.title = element_text(hjust = 0.5))
 
     # save plot
-    filePath <- paste0("pipeline/04d_exploreNSD/temp/", name, "_MSD.png")
+    filePath <- paste0("pipeline/04d_exploreNSD/temp/", name, "_MSD_",startYear,"_",startMonth,".png")
 
     ggsave(
       filePath,
