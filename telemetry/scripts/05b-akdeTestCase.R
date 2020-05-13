@@ -133,5 +133,13 @@ title("M30935 2018")
 plot(gpsData,UD=hr2019,xlim=plotExtent$x,ylim=plotExtent$y)
 title("M30935 2019")
 
-hrBothYears <- list("2018"=hr2018,"2019"=hr2019)
-overlap(hrBothYears) # doesn't work
+#### Calculate overlap ----
+# Wasn't able to get it to work when using UD objects (hr2018 instead of ouf2018)
+# When applied to ctmm object, returns the overlap of the two Gaussian distributions. 
+# Resulting value is bounded between 0 and 1. Value of 1 indicates the two distributions are identical.
+
+hrBothYears <- list("y2018"=ouf2018,"y2019"=ouf2019)
+overlap(hrBothYears) 
+
+hrBothYears <- c(hr2018,hr2019)
+overlap(hrBothYears)
