@@ -1,6 +1,7 @@
 # Data management packages
 library(plyr)
 library(tidyverse)
+library(lubridate)
 
 # Spatial packages
 library(rgdal)
