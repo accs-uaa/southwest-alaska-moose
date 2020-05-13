@@ -143,3 +143,6 @@ overlap(hrBothYears)
 
 hrBothYears <- c(hr2018,hr2019)
 overlap(hrBothYears)
+
+#### Export for future use ----
+save.image(file="pipeline/05b_akdeTestCase/udM30935.Rdata")
