@@ -6,8 +6,8 @@
 ## M30935 is a resident island moose
 
 # Load packages and data----
-library(tidyverse)
-library(sf)
+rm(list=ls())
+source("scripts/init.R")
 load("pipeline/03b_cleanLocations/cleanLocations.Rdata")
 
 # List of moose to select
@@ -15,21 +15,14 @@ idsToSelect<-c("M30102", "M30103", "M30894","M30935")
 
 # Create spatial object----
 
-# Convert move object to a data.frame 
-# Testing stuff to figure out the best way to deal with move<-->data.frame conversion
-mooseData <- gpsMove@data
-mooseData <- cbind(mooseData, as.data.frame(gpsMove@trackId))
-
 # Convert from POSIX.ct to character otherwise export step will throw an error
-mooseData$datetime<-as.character(mooseData$datetime)
+gpsClean$datetime<-as.character(gpsClean$datetime)
 
-mooseData <- mooseData %>% 
-  rename(deployment_id = `gpsMove@trackId`) %>% 
-  dplyr::select(RowID,latY,longX,datetime,Easting,Northing,deployment_id) %>% 
-  filter(deployment_id %in% idsToSelect)
+gpsClean <- gpsClean %>% 
+  dplyr::select(RowID,latY,longX,datetime,Easting,Northing,deployment_id) 
 
 # Convert to sf object
-moose_sf = st_as_sf(mooseData, coords = c("longX","latY"), crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+moose_sf = st_as_sf(gpsClean, coords = c("longX","latY"), crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 
 # Check projection
 st_is_longlat(moose_sf)
