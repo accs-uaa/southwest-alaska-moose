@@ -5,6 +5,7 @@ library(lubridate)
 
 # Spatial packages
 library(rgdal)
+library(sf)
 
 # Time series packages
 library(zoo)
