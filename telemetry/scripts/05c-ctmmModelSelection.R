@@ -1,58 +1,83 @@
-# Objective: Fit several movement models (OUF, ouf, OU, IID) and select the best one for each moose. Required for generating aKDE
+# Objectives: 1. Plot variograms for seasonal home ranges. Doing so allows us to check whether our cut-off dates need to be modified e.g. capturing part of migration.
+#             2. Reject home ranges with terrible variograms.
+#             3. Fit ctmm models to the remaining good ones.
 
-# Working through vignette: https://ctmm-initiative.github.io/ctmm/articles/variogram.html
-
-
-# Author: Amanda Droghini (adroghini@alaska.edu)
+# Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
-# Load data and packages----
-library(ctmm)
-load("pipeline/03c_interpolateData/mooseData.Rdata")
+#### Load packages and data----
+rm(list=ls())
+source("scripts/init.R")
+source("scripts/function-plotVariograms.R") # calls varioPlot function
+load("pipeline/05b_applyCalibration/calibratedData.Rdata")
 
-# Prepare data----
+#### Plot variograms----
+varioPlot(calibratedData,filePath="pipeline/05c_ctmmModelSelection/temp/",
+          zoom = FALSE)
 
-# Convert to telemetry object
-gpsData <- ctmm::as.telemetry(mooseData)
+#### Subset decent HRs only----
+names(calibratedData)
+decentRanges <- names(calibratedData)[c(1:3,6:9)]
+calibratedData <- calibratedData[decentRanges]
 
-# Exclude individuals M30927a, M30928a, M30928b, M35172
-# Variogram reveals too few data points to reach asymptote
-idsToExclude <- c("M30927a","M30928a", "M30928b", "M35172")
-gpsDataExcluded <- gpsData[-unlist(lapply(idsToExclude, function(x) grep(x, names(gpsData)) ) ) ]
-names(gpsDataExcluded)
+rm(decentRanges, varioPlot)
 
-rm(idsToExclude)
+#### Run models on decent HRs----
 
-# Model selection----
+# Generate initial "guess" parameters
+# See akdeTestCase for notes
+initParam <- lapply(calibratedData[1:length(calibratedData)], 
+                    function(b) ctmm.guess(b,CTMM=ctmm(error=TRUE),
+                                           interactive=FALSE) )
 
-# Use ctmm.guess (=variogram.fit) to obtain initial "guess" parameters, which can then be passed onto to ctmm.fit
-# Use ctmm.select to choose top-ranked model, which will be used to generate aKDEs
-# Do not use ctmm.fit - ctmm.fit() returns a model of the same class as the guess argument i.e. an OUF model with anisotropic covariance.
-
-initParam <- lapply(gpsDataExcluded[1:length(gpsDataExcluded)], function(b) ctmm.guess(b,interactive=FALSE) )
-
-# Takes ~3 hours to run
-fitMoveModels <- lapply(1:length(gpsDataExcluded), function(i) ctmm.select(gpsDataExcluded[[i]],initParam[[i]],verbose=TRUE) )
+# Takes a while to run
+fitMoveModels <- lapply(1:length(gpsData), function(i) ctmm.select(gpsData[[i]],initParam[[i]],verbose=TRUE) )
 
 # Add names to list items
-names(fitMoveModels) <- names(gpsDataExcluded[1:length(gpsDataExcluded)])
+names(fitMoveModels) <- names(gpsData[1:length(gpsData)])
 
-# Export results
-save(fitMoveModels,file="pipeline/05a_ctmmModelSelection/fitMoveModels.RData")
 
 # View top model for each individual
 # Why is dof.area so low for individuals with the same number of locations?
 lapply(fitMoveModels,function(x) summary(x)) #
 
 # Plot variogram with model fit----
-
-for (i in 1:length(gpsDataExcluded)){
-id <- names(gpsDataExcluded)[[i]]
-vario <- variogram(gpsDataExcluded[[i]], dt = 2 %#% "hour")
-fitOneId<-fitMoveModels[[i]]
-plot(vario,CTMM=fitOneId,col.CTMM=c("red","purple","blue","green"),fraction=0.65,level=0.5,main=id)
+for (i in 1:length(gpsData)){
+  id <- names(gpsData)[[i]]
+  vario <- variogram(gpsData[[i]], dt = 2 %#% "hour")
+  fitOneId<-fitMoveModels[[i]]
+  plot(vario,CTMM=fitOneId,col.CTMM=c("red","purple","blue","green"),fraction=0.65,level=0.5,main=id)
 }
-
 
 xlim <- c(0,12 %#% "hour")
 plot(vario,CTMM=fitOneId,col.CTMM=c("red","purple","blue","green"),xlim=xlim,level=0.5)
+
+# Generate akde for the 3 HRs that look most promising
+names(fitMoveModels) # 1, 3, 6
+
+# fit best model
+m30102y1annual <- fitMoveModels[[1]]$`OUF anisotropic`
+m30102y2annual <- fitMoveModels[[3]]$`OUF anisotropic`
+m30103y2annual <- fitMoveModels[[6]]$`OUF anisotropic`
+
+# home range
+hr.m30102y1annual <- akde(gpsData[[1]],CTMM=m30102y1annual,weights=TRUE)
+hr.m30102y2annual <- akde(gpsData[[3]],CTMM=m30102y2annual,weights=TRUE)
+hr.m30103y2annual <- akde(gpsData[[6]],CTMM=m30103y2annual,weights=TRUE)
+
+
+# summary
+summary(hr.m30102y1annual)
+summary(hr.m30102y2annual)
+summary(hr.m30103y2annual)
+
+plot(gpsData[[1]],UD=hr.m30102y1annual)
+plot(gpsData[[3]],UD=hr.m30102y2annual)
+plot(gpsData[[6]],UD=hr.m30103y2annual)
+
+rm(i,id)
+
+# Export to use for later
+save.image("pipeline/05b_akdeTestCase/multipleIds.Rdata")
+
+rm(list=ls())
