@@ -29,7 +29,8 @@ gpsData <- ctmm::as.telemetry(gpsData,projection="+init=epsg:32604")
 plot(gpsData,col=rainbow(length(gpsData)))
 
 # Plot variograms----
-varioPlot(gpsData)
+varioPlot(gpsData,filePath="pipeline/04a_exploreVariogram/temp/",
+          zoom = TRUE)
 dev.off()
 
 # Many of the zoomed in plots are non-linear, indicating continuity in the animal's velocity (from variogram vignette)
