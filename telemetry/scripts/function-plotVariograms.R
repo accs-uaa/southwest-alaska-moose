@@ -2,7 +2,9 @@
 
 # Code was modified from Dason: https://stackoverflow.com/questions/9048375/extract-names-of-objects-from-list
 
-varioPlot <- function(telemList){
+# Zoomed in variograms (12 hours) can be calculated by specifying zoom = TRUE
+
+varioPlot <- function(telemList,filePath, zoom = FALSE){
   require(ctmm)
   
   listToSeq <- lapply(telemList, function(x) as.data.frame(x, stringsAsFactors = FALSE))
@@ -12,30 +14,33 @@ varioPlot <- function(telemList){
     
     variog <- variogram(data,dt = 2 %#% "hour")
     level <- c(0.5,0.95) # 50% and 95% CIs
-    xlim <- c(0,12 %#% "hour") # 0-12 hour window
-    
-    # Zoomed in plot
-    plotName <- paste(name,"zoomIn",sep="_")
-    filePath <- paste("pipeline/04a_exploreVariogram/temp/",plotName,sep="")
-    finalName <- paste(filePath,"png",sep=".")
-    
-    plot(variog,xlim=xlim,level=level)
-    title(paste(name,"zoomed in",sep=" "))
-    dev.copy(png,finalName)
-    dev.off()
-    
+
     # Zoomed out plot
     plotName <- paste(name,"zoomOut",sep="_")
-    filePath <- paste("pipeline/04a_exploreVariogram/temp/",plotName,sep="")
-    finalName <- paste(filePath,"png",sep=".")
+    plotPath <- paste(filePath,plotName,sep="")
+    finalName <- paste(plotPath,"png",sep=".")
     
     plot(variog,fraction=0.65,level=level)
     title(paste(name,"zoomed out",sep=" "))
     dev.copy(png,finalName)
     dev.off()
     
-    }
+    if(zoom == TRUE){
+        plotName <- paste(name,"zoomIn",sep="_")
+        plotPath <- paste(filePath,plotName,sep="")
+        finalName <- paste(plotPath,"png",sep=".")
+        
+        plot(variog,xlim=c(0,12 %#% "hour"),level=level) # 0-12 hour window
+        title(paste(name,"zoomed in",sep=" "))
+        dev.copy(png,finalName)
+        dev.off()
+      }
+    
+    
+  }
   
+  
+ 
   # Create sequence 1,...,length(listToSeq)
   # Loops over that and then create an anonymous function
   # to send in the information you want to use.
