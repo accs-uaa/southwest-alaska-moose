@@ -112,8 +112,6 @@ rm(fitOneId, i, id)
 #### Generate AKDE ----
 ouf2018 <- fitYearlyModels[[1]]$`OUF anisotropic`
 ouf2019 <- fitYearlyModels[[2]]$`OUF anisotropic`
-oufJuly2018 <- fitYearlyModels[[1]]$`OUF anisotropic`
-oufJuly2019 <- fitYearlyModels[[2]]$`OUF anisotropic`
 # Choose weights = TRUE because sampling interval may not always be exactly two hours since we're using uninterpolated data
 hr2018 <- akde(data2018,CTMM=ouf2018,weights=TRUE)
 hr2019 <- akde(data2019,CTMM = ouf2019,weights=TRUE)
