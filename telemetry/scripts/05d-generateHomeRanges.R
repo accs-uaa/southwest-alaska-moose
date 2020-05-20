@@ -16,14 +16,9 @@ rm(calibratedData,idNames)
 
 #### Generate aKDE ----
 
-# Pick the top-ranked model for every seasonal ID
-# Wow, so many nested lists :-/
-bestModels <- lapply(1:length(decentModels), 
-                     function(i) decentModels[[i]][1][[1]])
-
 # Use weights = TRUE to account for gaps in data
 Sys.time()
-homeRanges <- akde(data=subsetData, CTMM=bestModels,
+homeRanges <- akde(data=subsetData, CTMM=decentModels,
                                      weights=TRUE)
 Sys.time()
 
@@ -41,7 +36,17 @@ lapply(1:length(homeRanges),
 overlap(homeRanges[1:2])
 overlap(homeRanges[4:5])
 
-# Export to use for later
-save.image("pipeline/05b_akdeTestCase/multipleIds.Rdata")
+# Export as shapefiles
+filePath <- paste(getwd(),"pipeline/05d_generateHomeRanges",sep="/")
+
+lapply(1:length(homeRanges), function (i) writeShapefile(homeRanges[[i]],
+               folder=filePath, file=names(homeRanges[i]),
+               level.UD=0.95))
+
+
+
+
+
+
 
 rm(list=ls())
