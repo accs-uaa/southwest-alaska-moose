@@ -88,9 +88,12 @@ lapply(1:length(calibratedData),
 rm(filePath)
 
 #### Select seasonal IDs that have decent model fits----
+# Only pick the top-ranking model for each seasonal ID
 names(fitModels)
 decentModels <- names(fitModels)[c(1,3,4,5,7)]
 decentModels <- fitModels[decentModels]
+decentModels <- lapply(1:length(decentModels), 
+       function(i) decentModels[[i]][1][[1]]) # Wow, so many nested lists :-/
 
 # Export
 save(decentModels,file="pipeline/05c_ctmmModelSelection/decentModels.Rdata")
