@@ -1,6 +1,4 @@
-# Objectives: 1. Plot variograms for seasonal home ranges. Doing so allows us to check whether our cut-off dates need to be modified e.g. capturing part of migration.
-#             2. Reject home ranges with terrible variograms.
-#             3. Fit ctmm models to the remaining good ones.
+# Objectives: Generate potential movement models to seasonal IDs. Assess model fit using variograms. Continue with only seasonal IDs that have good model fit. For the rest, go back to the drawing board-- Do you need to change start/end date?
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
@@ -24,60 +22,77 @@ rm(decentRanges, varioPlot)
 
 #### Run models on decent HRs----
 
-# Generate initial "guess" parameters
-# See akdeTestCase for notes
+# Generate initial "guess" parameters using ctmm.guess (=variogram.fit) 
+# Guess parameters can then be passed onto to ctmm.fit
 initParam <- lapply(calibratedData[1:length(calibratedData)], 
                     function(b) ctmm.guess(b,CTMM=ctmm(error=TRUE),
                                            interactive=FALSE) )
 
+# Fit movement models to the data
+# Using initial guess parameters and ctmm.select
+# ctmm.select will rank models and the top model can be chosen to generate an aKDE
+# Do not use ctmm.fit - ctmm.fit() returns a model of the same class as the guess argument i.e. an OUF model with anisotropic covariance.
 # Takes a while to run
-fitMoveModels <- lapply(1:length(gpsData), function(i) ctmm.select(gpsData[[i]],initParam[[i]],verbose=TRUE) )
+Sys.time() #"2020-05-19 10:51:24.884263 AKDT"
+fitModels <- lapply(1:length(calibratedData), 
+                    function(i) ctmm.select(data=calibratedData[[i]],
+                                            CTMM=initParam[[i]],
+                                            verbose=TRUE,trace=TRUE, cores=0,
+                                            method = "pHREML") )
+Sys.time() #"2020-05-19 14:51:13.756195 AKDT"
 
-# Add names to list items
-names(fitMoveModels) <- names(gpsData[1:length(gpsData)])
+# The warning "pREML failure: indefinite ML Hessian" is normal if some autocorrelation parameters cannot be well resolved.
 
+# Add seasonal animal ID names to fitModels list
+names(fitModels) <- names(calibratedData)
 
-# View top model for each individual
-# Why is dof.area so low for individuals with the same number of locations?
-lapply(fitMoveModels,function(x) summary(x)) #
+# Export results
+save(fitModels,file="pipeline/05c_ctmmModelSelection/fitModels.Rdata")
 
-# Plot variogram with model fit----
-for (i in 1:length(gpsData)){
-  id <- names(gpsData)[[i]]
-  vario <- variogram(gpsData[[i]], dt = 2 %#% "hour")
-  fitOneId<-fitMoveModels[[i]]
-  plot(vario,CTMM=fitOneId,col.CTMM=c("red","purple","blue","green"),fraction=0.65,level=0.5,main=id)
-}
+#### Assess model performance ----
 
-xlim <- c(0,12 %#% "hour")
-plot(vario,CTMM=fitOneId,col.CTMM=c("red","purple","blue","green"),xlim=xlim,level=0.5)
+# View model selection table for each ID
+# OUF always top model
+# the two instances where isotropic is chosen over anisotropic (M30104_y1_summer and M30104_y2_summer) have AICs that are within <2.5 of each other
+lapply(fitModels,function(x) summary(x))
 
-# Generate akde for the 3 HRs that look most promising
-names(fitMoveModels) # 1, 3, 6
+# Can you reject certain models based on DOF alone???
 
-# fit best model
-m30102y1annual <- fitMoveModels[[1]]$`OUF anisotropic`
-m30102y2annual <- fitMoveModels[[3]]$`OUF anisotropic`
-m30103y2annual <- fitMoveModels[[6]]$`OUF anisotropic`
+#### Plot variogram with model fit----
+filePath <- "pipeline/05c_ctmmModelSelection/temp/"
 
-# home range
-hr.m30102y1annual <- akde(gpsData[[1]],CTMM=m30102y1annual,weights=TRUE)
-hr.m30102y2annual <- akde(gpsData[[3]],CTMM=m30102y2annual,weights=TRUE)
-hr.m30103y2annual <- akde(gpsData[[6]],CTMM=m30103y2annual,weights=TRUE)
+lapply(1:length(calibratedData), 
+       function (a) {
+       plotName <- paste(names(fitModels[a]),"modelFit",sep="_")
+       plotPath <- paste(filePath,plotName,sep="")
+       finalName <- paste(plotPath,"png",sep=".")
+       
+         plot(variogram(calibratedData[[a]], dt = 2 %#% "hour"),
+              CTMM=fitModels[[a]][1],
+              col.CTMM=c("red","purple","blue","green"),
+              fraction=0.65,
+              level=0.5,
+              main=names(fitModels[a]))
+         
+         dev.copy(png,finalName)
+         dev.off()
+         
+         }
+       )
 
+# Can also look at zoomed in plot
+# Not coded
+# xlim <- c(0,12 %#% "hour")
+# plot(vario,CTMM=fitOneId,col.CTMM=c("red","purple","blue","green"),xlim=xlim,level=0.5)
 
-# summary
-summary(hr.m30102y1annual)
-summary(hr.m30102y2annual)
-summary(hr.m30103y2annual)
+rm(filePath)
 
-plot(gpsData[[1]],UD=hr.m30102y1annual)
-plot(gpsData[[3]],UD=hr.m30102y2annual)
-plot(gpsData[[6]],UD=hr.m30103y2annual)
+#### Select seasonal IDs that have decent model fits----
+names(fitModels)
+decentModels <- names(fitModels)[c(1,3,4,5,7)]
+decentModels <- fitModels[decentModels]
 
-rm(i,id)
-
-# Export to use for later
-save.image("pipeline/05b_akdeTestCase/multipleIds.Rdata")
+# Export
+save(decentModels,file="pipeline/05c_ctmmModelSelection/decentModels.Rdata")
 
 rm(list=ls())
