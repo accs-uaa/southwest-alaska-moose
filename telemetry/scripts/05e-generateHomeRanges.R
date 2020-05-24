@@ -6,7 +6,7 @@
 #### Load packages and data----
 rm(list=ls())
 source("scripts/init.R")
-load("pipeline/05c_ctmmModelSelection/decentModels.Rdata")
+load("pipeline/05d_assessModelFit/decentModels.Rdata")
 load("pipeline/05b_applyCalibration/calibratedData.Rdata")
 
 # Subset calibratedData to only include select seasonal IDs
@@ -42,11 +42,5 @@ filePath <- paste(getwd(),"pipeline/05d_generateHomeRanges",sep="/")
 lapply(1:length(homeRanges), function (i) writeShapefile(homeRanges[[i]],
                folder=filePath, file=names(homeRanges[i]),
                level.UD=0.95))
-
-
-
-
-
-
 
 rm(list=ls())
