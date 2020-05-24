@@ -9,7 +9,12 @@
 rm(list=ls())
 source("scripts/init.R")
 load("pipeline/03b_cleanLocations/cleanLocations.Rdata")
-migDates <- read_excel(path= "data/migrationDates.xlsx")
+
+#### Notes ----
+# testOne variograms run on: migDates <- read_excel(path= "output/migrationDates.xlsx",sheet = "migrationDates")
+# testTwo + onwards run on: migDates <- read_excel(path= "output/migrationDates.xlsx",sheet = "variogramAssess")
+
+migDates <- read_excel(path= "output/migrationDates.xlsx",sheet = "variogramAssess")
 
 #### Split data according to start/end dates----
 
@@ -59,6 +64,7 @@ temp <- rbind(temp,seasonalData %>% group_by(newid) %>%
   do(tail(., n=1)))
 
 temp <- temp %>% arrange(newid)
+View(temp)
 
 #### Export seasonal telemetry data----
 save(seasonalData,file="pipeline/05a_splitByMigrationDates/seasonalData.Rdata")
