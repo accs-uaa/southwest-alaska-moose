@@ -16,12 +16,12 @@ varioPlot <- function(telemList,filePath, zoom = FALSE){
     level <- c(0.5,0.95) # 50% and 95% CIs
 
     # Zoomed out plot
-    plotName <- paste(name,"zoomOut",sep="_")
+    plotName <- paste(name,sep="_")
     plotPath <- paste(filePath,plotName,sep="")
     finalName <- paste(plotPath,"png",sep=".")
     
     plot(variog,fraction=0.65,level=level)
-    title(paste(name,"zoomed out",sep=" "))
+    title(paste(name,sep=" "))
     dev.copy(png,finalName)
     dev.off()
     
