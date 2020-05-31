@@ -20,7 +20,7 @@ varioPlot <- function(telemList,filePath, zoom = FALSE){
     plotPath <- paste(filePath,plotName,sep="")
     finalName <- paste(plotPath,"png",sep=".")
     
-    plot(variog,fraction=0.65,level=level)
+    plot(variog,fraction=1,level=level,ylim = c(0,15000000)) 
     title(paste(name,sep=" "))
     dev.copy(png,finalName)
     dev.off()
