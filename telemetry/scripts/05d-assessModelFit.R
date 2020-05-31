@@ -12,7 +12,10 @@
 #### Load packages and data ----
 rm(list=ls())
 source("scripts/init.R")
-load("pipeline/05c_ctmmModelSelection/fitModels.Rdata")
+load("pipeline/05c_ctmmModelSelection/temp/data/fitModels.Rdata")
+load("pipeline/05c_ctmmModelSelection/temp/data/modelData.Rdata")
+
+names(fitModels) == names(calibratedData)
 
 #### View model selection table ----
 
@@ -33,30 +36,31 @@ modelSummary <- cbind(modelRows,modelSummary)
 modelSummary <- modelSummary[,-4]
 
 # Subset only the highest ranked models
-topModel <- distinct(modelSummary,.id, .keep_all=TRUE) 
+topModels <- distinct(modelSummary,.id, .keep_all=TRUE) 
 
-# Export 
-# write_csv forced UTF-8 encoding, but will have to select Data/From Text in MS Excel if you want the symbols to show up currently
+#### Export tables ----
+# write_csv forces UTF-8 encoding, but will have to select Data/From Text in MS Excel if you want the symbols to show up currently
 names(modelSummary) <- enc2utf8(names(modelSummary))
-write_csv(modelSummary,"output/modelRuns/modelSelectionTable.csv")
-write_csv(topModel,"output/modelRuns/topModels.csv")
+write_csv(modelSummary,path=paste("pipeline/05d_assessModelFit/temp/modelSelection/allModels_",Sys.Date()-1,".csv",sep=""))
+write_csv(topModels,path=paste("pipeline/05d_assessModelFit/temp/modelSelection/topModels_",Sys.Date()-1,".csv",sep=""))
 
-# Can you reject certain models based on DOF alone???
+rm(topModels,modelRows,modelSummary)
 
 #### Plot variogram with model fit----
-filePath <- "pipeline/05d_ctmmModelSelection/temp/"
+filePath <- paste("pipeline/05d_assessModelFit/temp/variograms/",Sys.Date()-1,"/",sep="")
 
 lapply(1:length(calibratedData), 
        function (a) {
-         plotName <- paste(names(fitModels[a]),"modelFit",sep="_")
+         plotName <- paste(names(fitModels[a]),sep="_")
          plotPath <- paste(filePath,plotName,sep="")
          finalName <- paste(plotPath,"png",sep=".")
          
-         plot(variogram(calibratedData[[a]], dt = 2 %#% "hour"),
-              CTMM=fitModels[[a]][1],
-              col.CTMM=c("red","purple","blue","green"),
-              fraction=0.65,
-              level=0.5,
+         plot(variogram(calibratedData[[a]], dt = 2 %#% "hour",CI="Gauss"),
+              CTMM=fitModels[[a]][1:2],
+              col.CTMM=c("red","blue","purple","green"),
+              fraction=1,
+              ylim=c(0,8000000),
+              level=c(0.5,0.95),
               main=names(fitModels[a]))
          
          dev.copy(png,finalName)
@@ -65,15 +69,39 @@ lapply(1:length(calibratedData),
        }
 )
 
-# Can also look at zoomed in plot
-# Not coded
-# xlim <- c(0,12 %#% "hour")
-# plot(vario,CTMM=fitOneId,col.CTMM=c("red","purple","blue","green"),xlim=xlim,level=0.5)
+### Zoomed in plot
+
+lapply(1:length(calibratedData), 
+       function (a) {
+         plotName <- paste(names(fitModels[a]),"zoomIn",sep="_")
+         plotPath <- paste(filePath,plotName,sep="")
+         finalName <- paste(plotPath,"png",sep=".")
+         
+         plot(variogram(calibratedData[[a]], dt = 2 %#% "hour",CI="Gauss"),
+              CTMM=fitModels[[a]][1:2],
+              col.CTMM=c("red","blue","purple","green"),
+              fraction=1,
+              xlim = c(0,12 %#% "hour"),
+              level=c(0.5,0.95),
+              main=names(fitModels[a]))
+         
+         dev.copy(png,finalName)
+         dev.off()
+         
+       }
+)
 
 rm(filePath)
 
+#### Explore model parameters
+summary(fitModels[[1]]$`OUF anisotropic error`)
+summary(fitModels$M30937_y1_summer$`OUF anisotropic error`)
+summary(fitModels$M30894_y1_winter$`OUF anisotropic error`)
+
 #### Select seasonal IDs that have decent model fits----
 # Only pick the top-ranking model for each seasonal ID
+
+# From Christen Fleming: the default "pHREML" estimator requires a DOF of 4-5 for reasonable bias (ctmm-user Google group)
 names(fitModels)
 decentModels <- names(fitModels)[c(1,3,4,5,7)]
 decentModels <- fitModels[decentModels]
