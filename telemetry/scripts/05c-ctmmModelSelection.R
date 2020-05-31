@@ -12,29 +12,30 @@ rm(list=ls())
 source("scripts/init.R")
 source("scripts/function-plotVariograms.R") # calls varioPlot function
 load("pipeline/05b_applyCalibration/calibratedData.Rdata")
-migDates <- read_excel(path= "output/migrationDates.xlsx",sheet = "variogramAssess")
+
+migDates <- read_excel(path= "output/migrationDates.xlsx",sheet = "newAttempts")
 
 #### Plot variograms----
-
-#### Notes
-# testOne variograms run on: migDates <- read_excel(path= "output/migrationDates.xlsx",sheet = "migrationDates")
-# testTwo + onwards run on: migDates <- read_excel(path= "output/migrationDates.xlsx",sheet = "variogramAssess")
-
 varioPlot(calibratedData,
-          filePath="pipeline/05c_ctmmModelSelection/temp/testFive/testFive",
+          filePath=paste("pipeline/05c_ctmmModelSelection/temp/variograms/",
+                         Sys.Date(),"/",sep=""),
           zoom = FALSE)
+dev.off()
 
 #### Subset decent HRs only----
-names(calibratedData)
-
 decentRanges <- migDates %>% 
         dplyr::mutate(new_id = paste(migDates$deployment_id,migDates$year,migDates$season,sep="_")) %>% 
         subset(run == "y")
+
 decentRanges <- decentRanges$new_id
 
 calibratedData <- calibratedData[decentRanges]
 
-rm(decentRanges, varioPlot)
+# Export
+fileName <- paste("pipeline/05c_ctmmModelSelection/temp/data/modelData_",Sys.Date(),".Rdata",sep="")
+save(calibratedData,file=fileName)
+
+rm(decentRanges, varioPlot,fileName,migDates)
 
 #### Run models on decent HRs----
 
@@ -49,20 +50,21 @@ initParam <- lapply(calibratedData[1:length(calibratedData)],
 # ctmm.select will rank models and the top model can be chosen to generate an aKDE
 # Do not use ctmm.fit - ctmm.fit() returns a model of the same class as the guess argument i.e. an OUF model with anisotropic covariance.
 
-# Latest run of 50 seasonal home ranges took 28 hours to run
-Sys.time() # "2020-05-22 17:24:41.64709 AKDT"
+# 50 seasonal home ranges took 28 hours to run
+# 13 seasonal home ranges took 5 hours to run
+Sys.time() # 2020-05-30 18:01:57.313426 AKDT
 fitModels <- lapply(1:length(calibratedData), 
                     function(i) ctmm.select(data=calibratedData[[i]],
                                             CTMM=initParam[[i]],
                                             verbose=TRUE,trace=TRUE, cores=0,
                                             method = "pHREML") )
-Sys.time() #"2020-05-23 23:46:08.31888 AKDT"
-
-# The warning "pREML failure: indefinite ML Hessian" is normal if some autocorrelation parameters cannot be well resolved.
+Sys.time() # 
 
 # Add seasonal animal ID names to fitModels list
 names(fitModels) <- names(calibratedData)
 
+# The warning "pREML failure: indefinite ML Hessian" is normal if some autocorrelation parameters cannot be well resolved.
+
 # Export results
-save(fitModels,file="pipeline/05c_ctmmModelSelection/fitModels.Rdata")
-save(initParam,file="pipeline/05c_ctmmModelSelection/initParam.Rdata")
+save(fitModels,file=paste("pipeline/05c_ctmmModelSelection/temp/data/fitModels_",Sys.Date(),".Rdata",sep=""))
+save(initParam,file=paste("pipeline/05c_ctmmModelSelection/temp/data/initParam_",Sys.Date(),".Rdata",sep=""))
