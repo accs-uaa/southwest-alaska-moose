@@ -58,7 +58,7 @@ fitModels <- lapply(1:length(calibratedData),
                                             CTMM=initParam[[i]],
                                             verbose=TRUE,trace=TRUE, cores=0,
                                             method = "pHREML") )
-Sys.time() # 
+Sys.time() # 2020-05-31 04:56:48.10169 AKDT
 
 # Add seasonal animal ID names to fitModels list
 names(fitModels) <- names(calibratedData)
@@ -66,5 +66,5 @@ names(fitModels) <- names(calibratedData)
 # The warning "pREML failure: indefinite ML Hessian" is normal if some autocorrelation parameters cannot be well resolved.
 
 # Export results
-save(fitModels,file=paste("pipeline/05c_ctmmModelSelection/temp/data/fitModels_",Sys.Date(),".Rdata",sep=""))
-save(initParam,file=paste("pipeline/05c_ctmmModelSelection/temp/data/initParam_",Sys.Date(),".Rdata",sep=""))
+save(fitModels,file=paste("pipeline/05c_ctmmModelSelection/temp/data/fitModels_",Sys.Date()-1,".Rdata",sep=""))
+save(initParam,file=paste("pipeline/05c_ctmmModelSelection/temp/data/initParam_",Sys.Date()-1,".Rdata",sep=""))
