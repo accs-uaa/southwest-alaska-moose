@@ -6,19 +6,14 @@
 #### Load packages and data----
 rm(list=ls())
 source("scripts/init.R")
-load("pipeline/05d_assessModelFit/decentModels.Rdata")
-load("pipeline/05b_applyCalibration/calibratedData.Rdata")
-
-# Subset calibratedData to only include select seasonal IDs
-idNames <- names(decentModels)
-subsetData <- calibratedData[idNames]
-rm(calibratedData,idNames)
+load("pipeline/06c_selectFinalModels/finalModels.Rdata")
+load("pipeline/06b_applyCalibration/calibratedData.Rdata")
 
 #### Generate aKDE ----
 
 # Use weights = TRUE to account for gaps in data
 Sys.time()
-homeRanges <- akde(data=subsetData, CTMM=decentModels,
+homeRanges <- akde(data=calibratedData, CTMM=finalMods,
                                      weights=TRUE)
 Sys.time()
 

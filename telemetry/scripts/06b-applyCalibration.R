@@ -6,7 +6,7 @@
 # Load packages and data----
 rm(list=ls())
 source("scripts/init.R")
-load("pipeline/05a_splitByMigrationDates/seasonalData.Rdata")
+load("pipeline/06a_splitByMigrationDates/seasonalData.Rdata")
 load("pipeline/02b_calibrateData/uereModel.Rdata") # calibration data
 
 # Convert to telemetry object----
@@ -28,6 +28,6 @@ uere(calibratedData) <- calibModel
 names(calibratedData[[1]]) # VAR.xy column appears
 
 # Export ----
-save(calibratedData,file="pipeline/05b_applyCalibration/calibratedData.Rdata")
+save(calibratedData,file="pipeline/06b_applyCalibration/calibratedData.Rdata")
 
 rm(list=ls())

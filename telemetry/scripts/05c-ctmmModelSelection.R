@@ -1,8 +1,4 @@
-# Objectives: 
-
-# 1) Generate variograms for seasonal home ranges to assess stationarity. If an asymptote is not reached, go back to the drawing board-- Do you need to change start/end date? This is a highly iterative, manual process.
-
-# 2) Run movement models for the variograms that seem promising (liberally defined). ctmm_select considers several movement models that differ with respect to their autocorrelation structure. These are described in Calabrese et al. (2016) DOI: 10.1111/2041-210X.12559
+# Objective: Run movement models for the variograms that seem promising (liberally defined). ctmm_select considers several movement models that differ with respect to their autocorrelation structure. These are described in Calabrese et al. (2016) DOI: 10.1111/2041-210X.12559
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
@@ -14,13 +10,6 @@ source("scripts/function-plotVariograms.R") # calls varioPlot function
 load("pipeline/05b_applyCalibration/calibratedData.Rdata")
 
 migDates <- read_excel(path= "output/migrationDates.xlsx",sheet = "newAttempts")
-
-#### Plot variograms----
-varioPlot(calibratedData,
-          filePath=paste("pipeline/05c_ctmmModelSelection/temp/variograms/",
-                         Sys.Date(),"/",sep=""),
-          zoom = FALSE)
-dev.off()
 
 #### Subset decent HRs only----
 decentRanges <- migDates %>% 

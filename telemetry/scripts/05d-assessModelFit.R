@@ -92,23 +92,3 @@ lapply(1:length(calibratedData),
 )
 
 rm(filePath)
-
-#### Explore model parameters
-summary(fitModels[[1]]$`OUF anisotropic error`)
-summary(fitModels$M30937_y1_summer$`OUF anisotropic error`)
-summary(fitModels$M30894_y1_winter$`OUF anisotropic error`)
-
-#### Select seasonal IDs that have decent model fits----
-# Only pick the top-ranking model for each seasonal ID
-
-# From Christen Fleming: the default "pHREML" estimator requires a DOF of 4-5 for reasonable bias (ctmm-user Google group)
-names(fitModels)
-decentModels <- names(fitModels)[c(1,3,4,5,7)]
-decentModels <- fitModels[decentModels]
-decentModels <- lapply(1:length(decentModels), 
-                       function(i) decentModels[[i]][1][[1]]) # Wow, so many nested lists :-/
-
-# Export
-save(decentModels,file="pipeline/05d_ctmmModelSelection/decentModels.Rdata")
-
-rm(list=ls())

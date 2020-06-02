@@ -10,7 +10,7 @@ rm(list=ls())
 source("scripts/init.R")
 load("pipeline/03b_cleanLocations/cleanLocations.Rdata")
 
-migDates <- read_excel(path= "output/migrationDates.xlsx",sheet = "newAttempts")
+migDates <- read_excel(path= "output/topModels_annotated.xlsx",sheet = "models to include")
 
 #### Split data according to start/end dates----
 
@@ -48,25 +48,9 @@ seasonalData <- gpsClean %>%
   mutate(newid = case_when(!!!cases)) %>% 
   filter(!is.na(newid))
 
-unique(seasonalData$newid)
-
-# Check
-temp <- seasonalData %>% group_by(newid) %>% 
-  dplyr::select(newid,UTC_Date) %>% 
-  do(head(., n=1))
-
-temp <- rbind(temp,seasonalData %>% group_by(newid) %>% 
-  dplyr::select(newid,UTC_Date) %>% 
-  do(tail(., n=1))) %>% 
-  arrange(newid)
-
-temp$type = rep(x=c("start","end"),length.out=(nrow(temp)))
-
-temp <- temp %>% pivot_wider(id_cols=newid, names_from=type,values_from = UTC_Date)
-  
-View(temp)
+length(unique(seasonalData$newid))
 
 #### Export seasonal telemetry data----
-save(seasonalData,file="pipeline/05a_splitByMigrationDates/seasonalData.Rdata")
+save(seasonalData,file="pipeline/06a_splitByMigrationDates/seasonalData.Rdata")
 
 rm(list=ls())
