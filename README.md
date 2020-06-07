@@ -9,7 +9,7 @@ This project is a collaboration between the Alaska Center for Conservation Scien
 
 # Prerequisites
 1. ArcGIS Pro 2.5.2+
-	i. Python 3.6.9+
+   1. Python 3.6.9+
 2. R 4.0.0+
   i. adehabitatLT 0.3.25+ 
   ii. ctmm 0.5.10+
