@@ -11,18 +11,18 @@ This project is a collaboration between the Alaska Center for Conservation Scien
 1. ArcGIS Pro 2.5.2+
    1. Python 3.6.9+
 2. R 4.0.0+
-  i. adehabitatLT 0.3.25+ 
-  ii. ctmm 0.5.10+
-  iii. lubridate 1.7.8+
-  iv. move 4.0.0+
-  v. plyr 1.8.6+
-  vi. raster 3.1.5+
-  vii. rgdal 1.4.8+
-	viii. readxl 1.3.1+
-	ix. sf 0.9.3+
-	x. tidyverse 1.3.0+
-	xi. tlocoh 1.40.7+
-	xii. zoo 1.8.8+
+   1. adehabitatLT 0.3.25+ 
+   2. ctmm 0.5.10+
+   3. lubridate 1.7.8+
+   4. move 4.0.0+
+   5. plyr 1.8.6+
+   6. raster 3.1.5+
+   7. rgdal 1.4.8+
+   8. readxl 1.3.1+
+   9. sf 0.9.3+
+   10. tidyverse 1.3.0+
+   11. tlocoh 1.40.7+
+   12. zoo 1.8.8+
 3. R Studio 1.3.9+
 
 # Credits
