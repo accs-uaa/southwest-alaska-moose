@@ -11,10 +11,8 @@ This project is a collaboration between the Alaska Center for Conservation Scien
 1. ArcGIS Pro 2.5.2+
 	i. Python 3.6.9+
 2. R 4.0.0+
-	
-	i. adehabitatLT 0.3.25+ 
-	
-	ii. ctmm 0.5.10+
+    i. adehabitatLT 0.3.25+ 
+    ii. ctmm 0.5.10+
 	
 	iii. lubridate 1.7.8+
 	iv. move 4.0.0+
