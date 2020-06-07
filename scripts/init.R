@@ -5,6 +5,7 @@ library(lubridate)
 library(readxl)
 
 # Spatial packages
+library(raster)
 library(rgdal)
 library(sf)
 
