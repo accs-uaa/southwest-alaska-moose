@@ -30,17 +30,20 @@ rm(eeMatrix)
 # Need to do this to avoid memory limit error
 # Work laptop has 16 GB of RAM, which is not enough even after increasing memory limit and trying to run on "fresh" (rebooted) computer
 
-# Order IDs alphabetically so that all home ranges for a given ID are contained in a single data chunk
+# Order calibratedData and finalMods alphabetically by IDs
 ids <- names(finalMods)
 ids <- ids[order(ids)]
 
 calibratedData <- calibratedData[ids]
 finalMods <- finalMods[ids]
 
-# names(finalMods) == ids # Check
-# names(calibratedData) == id
-
 # Create separate datasets
+
+# !!! To make life easier when calculating home range overlap (in subsequent script), make sure data are split in such a way that all home ranges for a given individual are contained in the same data chunk !!!
+
+names(ids)
+
+
 data1 <- calibratedData[1:11]
 mods1 <- finalMods[1:11]
 data2 <- calibratedData[12:22]
