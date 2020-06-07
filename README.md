@@ -12,14 +12,12 @@ This project is a collaboration between the Alaska Center for Conservation Scien
 	i. Python 3.6.9+
 2. R 4.0.0+
   i. adehabitatLT 0.3.25+ 
-  
   ii. ctmm 0.5.10+
-	
-	iii. lubridate 1.7.8+
-	iv. move 4.0.0+
-	v. plyr 1.8.6+
-	vi. raster 3.1.5+
-	vii. rgdal 1.4.8+
+  iii. lubridate 1.7.8+
+  iv. move 4.0.0+
+  v. plyr 1.8.6+
+  vi. raster 3.1.5+
+  vii. rgdal 1.4.8+
 	viii. readxl 1.3.1+
 	ix. sf 0.9.3+
 	x. tidyverse 1.3.0+
