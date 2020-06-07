@@ -52,3 +52,6 @@ rsconnect/
 /output
 /pipeline
 /gis
+
+# Cache folders
+.idea
