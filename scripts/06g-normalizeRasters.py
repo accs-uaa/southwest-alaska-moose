@@ -18,15 +18,15 @@ import os
 arcpy.CheckOutExtension("Spatial")
 
 # Set root directory
-drive = 'C:/'
-root_folder = 'Users\\adroghini\Documents\GitHub\southwest-alaska-moose'
+drive = 'C:\\'
+root_folder = 'Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose'
 raster_folder = os.path.join(drive, root_folder, 'pipeline\\06f_exportAsRasters')
 
 # Set overwrite option
 env.overwriteOutput = True
 
 # Define working geodatabase
-geodatabase = os.path.join(drive, root_folder, 'gis/mooseHomeRanges.gdb')
+geodatabase = os.path.join(drive, root_folder, 'gis\\mooseHomeRanges.gdb')
 
 # Create inputs
 cell_size = 40
@@ -41,7 +41,7 @@ initial_projection = arcpy.SpatialReference(input_projection)
 composite_projection = arcpy.SpatialReference(output_projection)
 
 # Set snap raster
-snap_raster = os.path.join(drive, root_folder, 'gis/northAmericanBeringia_ModelArea.tif')
+snap_raster = os.path.join(drive, root_folder, 'gis\\northAmericanBeringia_ModelArea.tif')
 arcpy.env.snapRaster = snap_raster
 
 # List all raster files to be processed, including file path
@@ -77,10 +77,10 @@ for i in range(len(files)):
     integer_raster = Int((Raster(outRaster) * conversion_factor) + 0.5)
 
     # Set values of 0 as No Data
-    null_raster = SetNull("integer_raster", "integer_raster", "VALUE = 0")
+    null_raster = SetNull(integer_raster, integer_raster, "VALUE = 0")
 
     # Define output raster name
-    final_raster = (exportPath + fileNames[i])
+    final_raster = os.path.join(exportPath,fileNames[i])
 
     # Reproject raster
     arcpy.ProjectRaster_management(null_raster,
