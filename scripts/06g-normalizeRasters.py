@@ -41,7 +41,7 @@ initial_projection = arcpy.SpatialReference(input_projection)
 composite_projection = arcpy.SpatialReference(output_projection)
 
 # Set snap raster
-snap_raster = os.path.join(drive, root_folder, 'gis/northAmericanBeringia_TotalArea.tif')
+snap_raster = os.path.join(drive, root_folder, 'gis/northAmericanBeringia_ModelArea.tif')
 arcpy.env.snapRaster = snap_raster
 
 # List all raster files to be processed, including file path
@@ -79,7 +79,7 @@ for i in range(len(files)):
     # Set values of 0 as No Data
     null_raster = SetNull("integer_raster", "integer_raster", "VALUE = 0")
 
-    # Define output raster
+    # Define output raster name
     final_raster = (exportPath + fileNames[i])
 
     # Reproject raster
