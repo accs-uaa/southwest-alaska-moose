@@ -47,11 +47,7 @@ rsconnect/
 *.xml
 *.shx
 
-# Ignore data, output, gis, and pipeline sub-folders in telemetry parent
-telemetry/data
-telemetry/output
-telemetry/pipeline
-telemetry/gis
+# Ignore data, output, gis, and pipeline folders
 /data
 /output
 /pipeline
