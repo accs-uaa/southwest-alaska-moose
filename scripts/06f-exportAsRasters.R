@@ -3,18 +3,22 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
-
+gc()
+memory.limit(10000000000000)
+source("scripts/function-exportAKDE.R")
 # Export as rasters -----
-fileName <- paste(getwd(),"pipeline/06e_generateHomeRanges/rasters/",sep="/")
+
+# List files
+files <- list.files("pipeline/06e_generateHomeRanges",pattern="\\d+",full.names = TRUE)
+
+filePath <- paste(getwd(),"pipeline/06f_exportAsRasters",sep="/")
+
+# Unfortunately lapply doesn't 
+# lapply(files,export_akdes,file_path=filePath)
 
 # level.UD doesn't give me anything different, regardless of value?
 
-laply(1:length(homeRanges),function(x) 
-  ctmm::writeRaster(homeRanges[[x]],DF="PDF",
-                    filename=paste(fileName,names(homeRanges[x]),sep="/"),
-                    format = "GTiff",
-                    level=0.95, 
-                    options="COMPRESS=LZW"),.progress = "text")
+
 
 # Normalize rasters using the Transformation / Normalize tool in: Evans JS, Oakleaf J, Cushman SA (2014) An ArcGIS Toolbox for Surface Gradient and Geomorphometric Modeling, version 2.0-0. URL: https://github.com/jeffreyevans/GradientMetrics Accessed: 2020 June 05.
 
