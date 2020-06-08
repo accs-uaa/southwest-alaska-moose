@@ -52,11 +52,10 @@ def listdir_fullpath(d):
     return [os.path.join(d, f) for f in os.listdir(d)]
 
 files = listdir_fullpath(filePath)
-files = files[0:2] # test
 
 # Define export directory and names of final rasters
 fileNames = os.listdir(filePath)
-exportPath = "C:\\Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose\\gis\\test\\"
+exportPath = "C:\\Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose\\gis\\normalizedRasters\\"
 
 # Run function
 for i in range(len(files)):
