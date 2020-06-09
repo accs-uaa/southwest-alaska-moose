@@ -10,7 +10,6 @@
 
 # Load modules
 import arcpy
-from arcpy import env
 from arcpy.sa import *
 import os
 
@@ -23,7 +22,7 @@ root_folder = 'Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose'
 raster_folder = os.path.join(drive, root_folder, 'pipeline\\06f_exportAsRasters')
 
 # Set overwrite option
-env.overwriteOutput = True
+arcpy.env.overwriteOutput = True
 
 # Define working geodatabase
 geodatabase = os.path.join(drive, root_folder, 'gis\\mooseHomeRanges.gdb')
