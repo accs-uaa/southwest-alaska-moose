@@ -35,15 +35,18 @@ hrSize <- hrSize %>%
   rename(modelName = .id) %>% 
   dplyr::select(modelName,season,year,id,everything())
 
+# Export table ----
+write_csv(hrSize,"output/homeRangeSizes.csv")
+
 #### Summary statistics ----
 # By season
+# Use median and interquartile range, rather than mean and standard deviation, because distribution is right-skewed
 hrSize %>% group_by(season) %>% 
-  summarise(
-    av.est = mean(est),
-    sd.est = sd(est),
-    max.est = max(est),
-    min.est = min(est),
-    n = length(est))
+  summarise(med = median(est),
+            iqr = IQR(est),
+            max.est = max(est),
+            min.est = min(est),
+            n = length(est))
 
 #### Plot results ----
 # Plotting parameters
@@ -60,8 +63,11 @@ hrSize %>%
   theme_minimal()+
   theme(legend.position = "top",panel.grid.minor = element_blank())
 
+ggsave("homeRangeSizeDistribution.png", device="png",path="output/figures",width=17,height=10,units="cm")
+
 # Correlation of summer home range sizes across years, with 1:1 line shown
 # Home range size is fairly similar across years
+# Add expand to force origin to start at 0,0
 hrSize %>% filter(season=="summer") %>% group_by(id) %>% 
   pivot_wider(values_from=est,names_from=year,id_cols=id) %>% 
   mutate(difference = abs(y1 - y2)) %>% 
@@ -70,14 +76,13 @@ hrSize %>% filter(season=="summer") %>% group_by(id) %>%
   geom_abline(slope=1, intercept=0,linetype=3)+
   geom_text(size = 3.25,nudge_x = 0,nudge_y = -5) +
   geom_point(size=2, shape=21,fill=cbPalette[8],color="black") +
-  scale_x_continuous(name="Year 1",limits=c(0,100),breaks=seq(0,200,by=20))+
-  scale_y_continuous(name="Year 2",limits=c(0,160),breaks=seq(0,200,by=40))+
+  scale_x_continuous(name="Home range size (sq. km) - Year 1",limits=c(0,110),breaks=seq(0,200,by=20),expand = c(0, 0))+
+  scale_y_continuous(name="Home range size (sq. km) - Year 2",limits=c(0,170),breaks=seq(0,200,by=40),expand = c(0, 0))+
   theme_bw()+
   theme(panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         axis.line = element_line(colour = "black"))
 
-# Export results ----
-write_csv(hrSize,"output/homeRangeSizes.csv")
+ggsave("homeRangeSizeBetweenYears.png", device="png",path="output/figures",width=17,height=10,units="cm")
 
 rm(list=ls())
