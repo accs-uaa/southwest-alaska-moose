@@ -84,4 +84,6 @@ overlapResults %>% mutate(id.no = seq(1:nrow(overlapResults))) %>%
   theme_minimal() +
   theme(legend.position = "right",axis.text.x=element_blank())
 
+ggsave("homeRangeSizeOverlap.png", device="png",path="output/figures",width=17,height=10,units="cm")
+
 rm(list=ls())
