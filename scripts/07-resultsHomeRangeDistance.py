@@ -8,6 +8,7 @@ import arcpy
 from arcpy.sa import Reclassify
 from arcpy.sa import RemapRange
 import os
+import time
 
 # Check out ArcGIS Spatial Analyst extension license
 arcpy.CheckOutExtension("Spatial")
@@ -47,12 +48,18 @@ outPolygon = os.path.join(geodatabase, "outPolygon")
 # Set workspace environment
 arcpy.env.workspace = geodatabase
 
-########### Convert rasters to centroids ###########
+# Start timing
+iteration_start = time.time()
+
+##### Convert rasters to centroids
 for inputRaster in raster_list:
+
     # Create file names
     modelName = os.path.split(os.path.splitext(inputRaster)[0])[1]
     mooseName = str.split(modelName, sep="_")[0]
     outCentroid = os.path.join(geodatabase, "temp_" + modelName)
+
+    print(f'\tConverting raster to centroid from {modelName} input raster...')
 
     # Reclassify raster
     outReclassify = Reclassify(inputRaster, reclassField, remap)
@@ -79,7 +86,12 @@ for inputRaster in raster_list:
             row[1] = mooseName
             cursor.updateRow(row)
 
-####### End loop ########
+##### End loop / timing
+iteration_end = time.time()
+iteration_elapsed = int(iteration_end - iteration_start)
+iteration_success_time = datetime.datetime.now()
+print(f'\tCompleted at {iteration_success_time.strftime("%Y-%m-%d %H:%M")} (Elapsed time: {datetime.timedelta(seconds=iteration_elapsed)})')
+print('\t----------')
 
 # Merge all centroid shapefiles into a single feature class
 
@@ -89,10 +101,10 @@ allCentroids = os.path.join(geodatabase,"allCentroids")
 
 arcpy.Merge_management(inputs=centroids, output=allCentroids)
 
-########### Calculate distances between centroids
+##### Calculate distances between centroids
 
 # Set parameters
-searchRadius = '100 Kilometers'
+searchRadius = '1000 Kilometers'
 
 arcpy.Near_analysis(in_features=allCentroids, near_features=allCentroids, search_radius=searchRadius, location= 'NO_LOCATION',
                                  angle= 'NO_ANGLE')
