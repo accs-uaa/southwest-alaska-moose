@@ -106,6 +106,8 @@ arcpy.Merge_management(inputs=centroids, output=allCentroids)
 # Set parameters
 searchRadius = '1000 Kilometers'
 
+# Calculate distances
+# The resulting NEAR_DIST value is in the linear unit of the input features coordinate system
 arcpy.Near_analysis(in_features=allCentroids, near_features=allCentroids, search_radius=searchRadius, location= 'NO_LOCATION',
                                  angle= 'NO_ANGLE')
 
@@ -117,6 +119,7 @@ arcpy.JoinField_management(in_data=allCentroids,in_field="NEAR_FID",join_table=j
 # Delete redundant fields
 fieldsToDelete = ["Id","gridcode","ORIG_FID"]
 
+# Delete intermediate products
 arcpy.DeleteField_management(allCentroids, fieldsToDelete)
 
 arcpy.Delete_management(joinTable)
