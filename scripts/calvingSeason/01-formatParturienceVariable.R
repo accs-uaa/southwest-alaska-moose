@@ -35,11 +35,11 @@ calfData <- calfData %>%
   select(deployment_id,sensor_type,date,calfAlive)
 
 # Convert date to POSIX object 
-calfData$date <- as.POSIXct(calfData$date,format="%e %B %Y")
+calfData$date <- as.Date(calfData$date,format="%e %B %Y")
 
 #### Export data----
 
-# As.Rdata file rather than .csv because I don't want to deal with re-POSIXting my dates
+# As.Rdata file rather than .csv because I don't want to deal with reclassifying my dates
 save(calfData,file="pipeline/calvingSeason/01_formatData/calfData.Rdata")
 
 # Clean workspace
