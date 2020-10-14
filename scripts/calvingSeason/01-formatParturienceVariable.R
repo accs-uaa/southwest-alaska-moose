@@ -40,7 +40,7 @@ calfData$date <- as.POSIXct(calfData$date,format="%e %B %Y")
 #### Export data----
 
 # As.Rdata file rather than .csv because I don't want to deal with re-POSIXting my dates
-save(calfData,file="pipeline/calvingSeason/01_formatParturience/calfData.Rdata")
+save(calfData,file="pipeline/calvingSeason/01_formatData/calfData.Rdata")
 
 # Clean workspace
 rm(list=ls())
