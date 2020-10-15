@@ -1,4 +1,4 @@
-# Objective: Combine VHF and GPS data into a single file. Subset to only include calving season.
+# Objective: Combine VHF and GPS data into a single file. Subset to include only calving season.
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
