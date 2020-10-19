@@ -6,7 +6,6 @@
 library(plyr)
 library(tidyverse)
 library(lubridate)
-library(amt)
 
 load("pipeline/calvingSeason/01_formatData/vhfData.Rdata")
 load("pipeline/03b_cleanLocations/cleanLocations.Rdata")
@@ -23,7 +22,7 @@ vhfData <- vhfData %>%
   dplyr::mutate(RowID = row_number(AKDT_Date)) %>% 
   arrange(deployment_id,RowID) %>% 
   ungroup() %>% 
-  rename(animal_id = Moose_ID) %>% 
+  dplyr::rename(animal_id = Moose_ID) %>% 
   mutate(datetime = as.POSIXct(paste(AKDT_Date, "08:00:00", sep=" "),
          format="%Y-%m-%d %T",
          tz="UTC"))
