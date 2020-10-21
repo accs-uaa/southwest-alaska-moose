@@ -11,6 +11,7 @@ load(file="pipeline/calvingSeason/01_formatData/allRelocationData.Rdata")
 # Both GPS collars and VHF relocation coordinates were in WGS 84
 tracks <- move::move(allData$longX, allData$latY, time=allData$datetime,
                      animal=allData$deployment_id,
+                     sensor=allData$sensor_type,
                      proj = sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 
 #### Calculate movement metrics----
@@ -21,8 +22,11 @@ tracks$speedKmh <- (unlist(lapply(move::speed(tracks),c, NA )))*3.6
 
 # For VHF, timestamp is not consistently one day. 
 hist(tracks$angles)
+summary(tracks$angles)
+
 hist(tracks$distanceMeters/1000)
-max(tracks$distanceMeters,na.rm=TRUE)
+summary(tracks$distanceMeters)
+
 which(tracks$distanceMeters>110000)
 allData[c(723:726),]
 allData[c(924:931),]
