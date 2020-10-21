@@ -30,7 +30,7 @@ vhfData <- vhfData %>%
 # Create sensor_type == GPS for GPS data
 gpsClean <- gpsClean %>% 
   mutate(sensor_type = "GPS", AKDT_Date = as.Date(datetime)) %>% 
-  select(-c(UTC_Date,UTC_Time,Easting,Northing))
+  dplyr::select(-c(UTC_Date,UTC_Time,Easting,Northing))
 
 # Combine VHF & GPS data
 allData <- plyr::rbind.fill(vhfData,gpsClean)
@@ -43,7 +43,19 @@ allData <- allData %>%
 
 # Check if there are any mortality signals- would no longer actively selecting for habitat at that point...
 unique(allData$mortalityStatus) # only normal or NA if VHF
-allData <- select(.data=allData,-mortalityStatus)
+allData <- dplyr::select(.data=allData,-mortalityStatus)
+
+# Drop individuals that have fewer than 15 relocations
+n <- plyr::count(allData, "deployment_id")
+
+n <- n %>% 
+  filter(freq >= 15) %>% 
+  dplyr::select(deployment_id)
+
+n <- n$deployment_id
+
+allData <- allData %>% 
+  filter(deployment_id %in% n)
 
 #### Export data ----
 # Save as .Rdata file
