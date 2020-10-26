@@ -12,16 +12,10 @@ load("pipeline/03b_cleanLocations/cleanLocations.Rdata")
 
 #### Format data ----
 
-# Create RowID for VHF data
-# Create datetime variable for use with amt package. Exact time of observation in unknown - Set everything to 08:00 and assume relocations on subsequent days were spaced 24 h apart (given flight times and duration, this relocation is ~ 24 hours +/- 4 h)
+# Create datetime variable. Exact time of observation in unknown - Set everything to 08:00 and assume relocations on subsequent days were spaced 24 h apart (given flight times and duration, this relocation is ~ 24 hours +/- 4 h)
 # Set timezone to UTC to conform with Movebank requirements and to standardize with GPS dataset
 # Because all flights were no earlier than mid-morning, AKDT Date = UTC Date (UTC is 8 hours ahead)
-vhfData <- vhfData %>% 
-  group_by(deployment_id) %>% 
-  arrange(AKDT_Date) %>% 
-  dplyr::mutate(RowID = row_number(AKDT_Date)) %>% 
-  arrange(deployment_id,RowID) %>% 
-  ungroup() %>% 
+vhfData <- vhfData %>%
   dplyr::rename(animal_id = Moose_ID) %>% 
   mutate(datetime = as.POSIXct(paste(AKDT_Date, "08:00:00", sep=" "),
          format="%Y-%m-%d %T",
@@ -35,6 +29,8 @@ gpsClean <- gpsClean %>%
 # Combine VHF & GPS data
 allData <- plyr::rbind.fill(vhfData,gpsClean)
 
+#### Sample size decisions----
+
 # Restrict to calving season only
 # We define the calving season as the period from May 10th to June 15th
 # Might have to be revised since data on calf status ends on the first week of June
@@ -45,17 +41,42 @@ allData <- allData %>%
 unique(allData$mortalityStatus) # only normal or NA if VHF
 allData <- dplyr::select(.data=allData,-mortalityStatus)
 
-# Drop individuals that have fewer than 15 relocations
-n <- plyr::count(allData, "deployment_id")
+# Recode deployment_id to include year
+# We are treating paths from different calving seasons as independent
+allData <- allData %>% 
+  mutate(mooseYear_id = paste(deployment_id,year(AKDT_Date),sep="."))
+
+# Create RowID variable for sorting
+allData <- allData %>%
+  group_by(mooseYear_id) %>% 
+  arrange(datetime,.by_group=TRUE) %>% 
+  dplyr::mutate(RowID = row_number(datetime)) %>%
+  ungroup()
+
+# Calculate number of relocations per moose-year
+# How many relocations is too few?
+n <- plyr::count(allData, "mooseYear_id") 
+
+n <- left_join(n,allData,by="mooseYear_id") %>% 
+  filter(!(duplicated(mooseYear_id))) %>% 
+  select(mooseYear_id,freq,sensor_type)
+  
+temp <- n %>% filter(sensor_type=="VHF")
+hist(temp$freq,
+     main="Number of VHF relocations per moose-year",
+     xlab="Number of relocations",ylab="Number of moose-years",
+     xlim = c(0,20),ylim=c(0,50),
+     col="#0072B2",border = "#FFFFFF")
 
 n <- n %>% 
   filter(freq >= 15) %>% 
-  dplyr::select(deployment_id)
 
 n <- n$deployment_id
 
 allData <- allData %>% 
   filter(deployment_id %in% n)
+
+rm(n)
 
 #### Export data ----
 # Save as .Rdata file
