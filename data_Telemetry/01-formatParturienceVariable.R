@@ -39,7 +39,7 @@ calfData$date <- as.Date(calfData$date,format="%e %B %Y")
 #### Export data----
 
 # As.Rdata file rather than .csv because I don't want to deal with reclassifying my dates
-save(calfData,file="pipeline/calvingSeason/01_formatData/calfData.Rdata")
+save(calfData,file="pipeline/telemetryData/calvingSeason/calfData.Rdata")
 
 # Clean workspace
 rm(list=ls())
