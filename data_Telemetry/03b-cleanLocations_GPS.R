@@ -7,11 +7,9 @@
 # Since I'm still in the exploratory phase, I'm not sure if it's worth spending half a day combing through these plots again right now.
 
 # Load data and packages----
-source("scripts/init.R")
-source("scripts/function-plotOutliers.R")
+source("package_TelemetryFormatting/init.R")
 
-load("pipeline/03a_cleanFixRate/cleanFixRate.Rdata")
-
+load("pipeline/telemetryData/gpsData/03a_cleanFixRate/cleanFixRate.Rdata")
 
 #### Calculate movement metrics----
 
@@ -65,7 +63,7 @@ ids <- names(ctmmData)
 for (i in 1:length(ids)){
   ctmm::outlie(ctmmData[[i]],plot=TRUE,main=ids[i])
   plotName <- paste("outliers",ids[i],sep="")
-  filePath <- paste("pipeline/03b_cleanLocations/temp/",plotName,sep="")
+  filePath <- paste("pipeline/telemetryData/gpsData/03b_cleanLocations/temp/",plotName,sep="")
   finalName <- paste(filePath,"png",sep=".")
   dev.copy(png,finalName)
   dev.off()
@@ -136,7 +134,7 @@ gpsClean <- gpsClean %>%
 # Deleted 6 rows
 
 #### Save files----
-save(gpsClean,file="pipeline/03b_cleanLocations/cleanLocations.Rdata")
+save(gpsClean,file="pipeline/telemetryData/gpsData/03b_cleanLocations/cleanLocations.Rdata")
 
 # Clean workspace
 rm(list=ls())

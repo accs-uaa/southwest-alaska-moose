@@ -5,15 +5,14 @@ library(lubridate)
 library(readxl)
 
 # Spatial packages
-library(raster)
-library(rgdal)
 library(sf)
-
-# Time series packages
-library(zoo)
+library(sp)
 
 # Animal movement packages
 library(move)
 library(ctmm)
-library(tlocoh) # for animating movement paths. Can also use moveVis but I was having problem aligning my data and I wanted something quick
-library(adehabitatLT)
+
+# Functions
+source("package_TelemetryFormatting/function-collarRedeploys.R")
+source("package_TelemetryFormatting/function-subsetIDTimeLags.R")
+source("package_TelemetryFormatting/function-plotOutliers.R")

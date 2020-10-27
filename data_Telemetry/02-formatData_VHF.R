@@ -3,8 +3,7 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 
 # Load packages and data----
-library(tidyverse)
-library(readxl)
+source("package_TelemetryFormatting/init.R")
 
 flightData <- read_excel("data/calvingSeason/dbo_FlightIndex.xlsx",sheet="dbo_FlightIndex")
 vhfData <- read_excel("data/calvingSeason/dbo_MooseRadioTelemetry.xlsx",sheet="dbo_MooseRadioTelemetry")

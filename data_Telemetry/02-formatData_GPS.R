@@ -4,12 +4,10 @@
 #         Alaska Center for Conservation Science
 
 #### Load packages and data----
-source("scripts/init.R")
+source("package_TelemetryFormatting/init.R")
 
-source("scripts/function-collarRedeploys.R")
-
-load("pipeline/01_importData/gpsRaw.Rdata") # GPS telemetry data
-load("pipeline/01_createDeployMetadata/deployMetadata.Rdata") # Deployment metadata file
+load("pipeline/telemetryData/gpsData/01_importData/gpsRaw.Rdata") # GPS telemetry data
+load("pipeline/telemetryData/gpsData/01_createDeployMetadata/deployMetadata.Rdata") # Deployment metadata file
 
 
 #### Format GPS data----
@@ -19,19 +17,19 @@ load("pipeline/01_createDeployMetadata/deployMetadata.Rdata") # Deployment metad
 # 3. Combine date and time in a single column ("datetime")
 ## Use UTC time zone to conform with Movebank requirements
 # 4. Rename Latitude.... ; Longitude.... ; Temp...C. ; Height..m.
-gpsData <- gpsData %>% 
-  dplyr::mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time), 
-                               format="%m/%d/%Y %I:%M:%S %p",tz="UTC")) %>% 
-  dplyr::rename(longX = "Longitude....", latY = "Latitude....", tag_id = CollarID, 
-                mortalityStatus = "Mort..Status") %>% 
-  filter(!(is.na(longX) | is.na(latY) | is.na(UTC_Date))) %>% 
+gpsData <- gpsData %>%
+  dplyr::mutate(datetime = as.POSIXct(paste(gpsData$UTC_Date, gpsData$UTC_Time),
+                               format="%m/%d/%Y %I:%M:%S %p",tz="UTC")) %>%
+  dplyr::rename(longX = "Longitude....", latY = "Latitude....", tag_id = CollarID,
+                mortalityStatus = "Mort..Status") %>%
+  filter(!(is.na(longX) | is.na(latY) | is.na(UTC_Date))) %>%
   filter(longX < -152)
 
 #### Generate Eastings and Northings----
 # Even if present in original data, I would recalculate them since they seem to spotty. Have NAs even though lat/long are known.
 
 # This makes calculation of movement metrics easier
-coordLatLong = SpatialPoints(cbind(gpsData$longX, gpsData$latY), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+coordLatLong <- SpatialPoints(cbind(gpsData$longX, gpsData$latY), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 coordLatLong # check that signs are correct
 
 # Transform coordinates to UTM
@@ -49,12 +47,12 @@ rm(coordUTM,coordLatLong)
 
 # Filter deployment metadata to include only GPS data and redeploys
 # Redeploys are differentiated from non-redeploys because they end in a letter
-redeployList <- deploy %>% 
-  filter(sensor_type == "GPS" & (grepl(paste(letters, collapse="|"), deployment_id))) %>% 
-  dplyr::select(deployment_id,tag_id,deploy_on_timestamp,deploy_off_timestamp) 
+redeployList <- deploy %>%
+  filter(sensor_type == "GPS" & (grepl(paste(letters, collapse="|"), deployment_id))) %>%
+  dplyr::select(deployment_id,tag_id,deploy_on_timestamp,deploy_off_timestamp)
 
 # Format LMT Date column as POSIX data type for easier filtering
-gpsData$LMT_Date = as.POSIXct(strptime(gpsData$LMT_Date, 
+gpsData$LMT_Date = as.POSIXct(strptime(gpsData$LMT_Date,
                                        format="%m/%d/%Y",tz="America/Anchorage"))
 
 # Use tagRedeploy function to evaluate whether a tag is unique or has been redeployed
@@ -90,15 +88,15 @@ rm(gpsRedeployOnly,gpsUniqueOnly,redeployList,makeRedeploysUnique,tagRedeploy)
 
 # Drop unnecessary columns
 
-gpsData <- gpsData %>% 
-group_by(deployment_id) %>% 
-  arrange(datetime) %>% 
-  dplyr::mutate(RowID = row_number(datetime)) %>% 
-  arrange(deployment_id,RowID) %>% 
-  ungroup() %>% 
-  dplyr::select(-c(No,tagStatus,LMT_Date,LMT_Time,tag_id)) %>% 
+gpsData <- gpsData %>%
+group_by(deployment_id) %>%
+  arrange(datetime) %>%
+  dplyr::mutate(RowID = row_number(datetime)) %>%
+  arrange(deployment_id,RowID) %>%
+  ungroup() %>%
+  dplyr::select(-c(No,tagStatus,LMT_Date,LMT_Time,tag_id)) %>%
   dplyr::select(RowID,everything())
- 
+
 # Join with deployment metadata to get individual animal ID
 # Useful when uploading into Movebank.
 deploy <- deploy %>% dplyr::select(animal_id,deployment_id)
@@ -109,6 +107,6 @@ gpsData <- left_join(gpsData,deploy,by="deployment_id")
 gpsData <- as.data.frame(gpsData)
 
 # Save as .Rdata file
-save(gpsData, file="pipeline/02_formatData/formattedData.Rdata")
+save(gpsData, file="pipeline/telemetryData/gpsData/02_formatData/formattedData.Rdata")
 
 rm(list = ls())

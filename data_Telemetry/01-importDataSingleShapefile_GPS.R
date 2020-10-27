@@ -6,7 +6,7 @@
 #         Alaska Center for Conservation Science
 
 # Load packages and data files----
-library(sf)
+source("package_TelemetryFormatting/init.R")
 
 gpsData <- st_read("data/Moose_2020-03-31.shp")
 

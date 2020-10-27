@@ -3,9 +3,8 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 
 #### Load packages and data----
-library(tidyverse)
-library(move)
-load(file="pipeline/calvingSeason/01_formatData/allRelocationData.Rdata")
+source("package_TelemetryFormatting/init.R")
+load(file="pipeline/telemetryData/calvingSeason/allRelocationData.Rdata")
 
 #### Format data----
 # Both GPS collars and VHF relocation coordinates were in WGS 84
@@ -24,7 +23,7 @@ allData$distance_meters <- unlist(lapply(move::distance(tracks), c, NA))
 # Native speed units are in m/s
 allData$speed_kmh <- (unlist(lapply(move::speed(tracks),c, NA )))*3.6
 
-# For VHF, timestamp is not consistently one day. 
+# For VHF, timestamp is not consistently one day.
 hist(tracks$angles)
 summary(tracks$angles)
 

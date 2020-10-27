@@ -5,14 +5,12 @@
 
 #### Load data and packages----
 rm(list = ls())
+source("package_TelemetryFormatting/init.R")
 
-source("scripts/init.R")
-source("scripts/function-subsetIDTimeLags.R")
-
-load("pipeline/02_formatData/formattedData.Rdata")
+load("pipeline/telemetryData/gpsData/02_formatData/formattedData.Rdata")
 
 #### Calculate time lags----
-# According to Vectronic manual (https://vectronic-aerospace.com/wp-content/uploads/2016/04/Manual_GPS-Plus-Collar-Manager-V3.11.3.pdf), Lat/Long is in WGS84. 
+# According to Vectronic manual (https://vectronic-aerospace.com/wp-content/uploads/2016/04/Manual_GPS-Plus-Collar-Manager-V3.11.3.pdf), Lat/Long is in WGS84.
 # Convert to move object
 # Required for calculating timeLags
 # Use Easting/Northing as coordinates
@@ -30,7 +28,7 @@ n.locs(gpsMove) # no of locations per individuals
 
 # Explore data for outliers----
 # See vignette: https://ctmm-initiative.github.io/ctmm/articles/error.html
-# 
+#
 
 # 1. Check time lags- missed fixed rates or duplicates. Fix rate is 2 hours. In this data set, most problems stem from unidentified redeployments (addressed in previous script) and collar issues at the start/end of deployment
 # 2. Check movement outliers including:
@@ -38,10 +36,10 @@ n.locs(gpsMove) # no of locations per individuals
 #         b) improbable distances
 #         c) improbable locations
 
-plot(gpsData$Easting, gpsData$Northing, 
+plot(gpsData$Easting, gpsData$Northing,
      xlab="Easting", ylab="Northing")
 
-summary(gpsData) 
+summary(gpsData)
 
 # Will tackle other, less noticeable location outliers on a case-by-case basis later
 
@@ -56,20 +54,20 @@ timelagSummary <- data.frame(row.names = ids)
 
 for (i in 1:length(ids)){
   timeL <- timeLags[[i]]
-  
+
   timelagSummary$id[i] <- ids[i]
   timelagSummary$min[i] <- min(timeL)
   timelagSummary$mean[i] <- mean(timeL)
   timelagSummary$sd[i] <- sd(timeL)
   timelagSummary$max[i] <- max(timeL)
-  
+
   hist(timeL,main=ids[i],xlab="Hours")
   plotName <- paste("timeLags",ids[i],sep="")
-  filePath <- paste("pipeline/03a_cleanFixRate/temp/",plotName,sep="")
+  filePath <- paste("pipeline/telemetryData/gpsData/03a_cleanFixRate/temp/",plotName,sep="")
   finalName <- paste(filePath,"png",sep=".")
   dev.copy(png,finalName)
   dev.off()
-  
+
 }
 
 rm(plotName,filePath,finalName,i,timeL)
@@ -130,14 +128,14 @@ View(subsetID[1533:1540,]) # Jumps from 2019-08-06 19:00:43 to 2019-08-07 21:00:
 
 # investigating... M30928a
 # death date on datasheet written as 20-05-2018
-subsetID <- subsetTimeLags("M30928a",1.95,2.05,stepLengths=TRUE) 
+subsetID <- subsetTimeLags("M30928a",1.95,2.05,stepLengths=TRUE)
 View(subsetID[1:8,]) # Jumps from 2018-04-05 15:00:39 to 2018-04-06 05:00:16. Solution: Delete start (n=4)
 # Get rid of every record with RowID>519. Arbitrary -- Can revisit later
 
 
 # investigating... M30928b
 subsetID <- subsetTimeLags("M30928b",1.95,2.05)
-View(subsetID[1108:1112,]) 
+View(subsetID[1108:1112,])
 View(subsetID[1495:1500,]) # Random missed fixes
 
 # investigating... M30930
@@ -166,7 +164,7 @@ View(subsetID[1:7,]) # 1. Solution: Delete start (n=5).
 
 # investigating... M30936
 subsetID <- subsetTimeLags("M30936",1.95,2.05)
-View(subsetID[1:10,]) # 1. Delete start (n=8). 
+View(subsetID[1:10,]) # 1. Delete start (n=8).
 
 # investigating... M30937
 subsetID <- subsetTimeLags("M30937",1.95,2.05)
@@ -184,7 +182,7 @@ subsetID <- subsetTimeLags("M30939",1.95,2.05) # Missing a couple of non-consecu
 
 # investigating... M30940
 subsetID <- subsetTimeLags("M30940",1.95,2.05)
-View(subsetID[1:12,]) # 1. Delete start (n=7). Only missing two more. 
+View(subsetID[1:12,]) # 1. Delete start (n=7). Only missing two more.
 
 # investigating... M35172
 subsetID <- subsetTimeLags("M35172",1.95,2.05) # Only missing two fixes
@@ -195,17 +193,17 @@ subsetID <- subsetTimeLags("M35173",1.95,2.05) # good to go
 # Workspace clean-up
 rm(ids,timeLags,subsetID,subsetTimeLags)
 
-gpsClean <- gpsData %>% 
-  filter(!(deployment_id == "M30103" & RowID <= 6 | deployment_id == "M30105" & RowID <= 5 | 
+gpsClean <- gpsData %>%
+  filter(!(deployment_id == "M30103" & RowID <= 6 | deployment_id == "M30105" & RowID <= 5 |
              deployment_id == "M30894" & RowID <= 8 | deployment_id == "M30926" & RowID <= 5 |
              deployment_id == "M30926" & RowID > 4823 | deployment_id == "M30928a" & RowID <= 4 |
              deployment_id == "M30928a" & RowID > 519 |
-             deployment_id == "M30931" & RowID <= 5 | deployment_id == "M30935" & RowID <= 5 | 
+             deployment_id == "M30931" & RowID <= 5 | deployment_id == "M30935" & RowID <= 5 |
              deployment_id == "M30936" & RowID <= 8 | deployment_id == "M30937" & RowID <= 7 |
              deployment_id == "M30938" & RowID > 6991 |
              deployment_id == "M30940" & RowID <= 7))
 
-# Total number of rows deleted: 
+# Total number of rows deleted:
 nrow(gpsData)-nrow(gpsClean)
 (nrow(gpsData)-nrow(gpsClean))/nrow(gpsData)*100 # percentage
 # 1,597 records from M30938-- mortality
@@ -213,8 +211,8 @@ nrow(gpsData)-nrow(gpsClean)
 #### Check for duplicated timestamps----
 getDuplicatedTimestamps(x=as.factor(gpsClean$deployment_id),timestamps=gpsClean$datetime,sensorType="gps") # none
 
-# Export cleaned data 
-save(gpsClean,file="pipeline/03a_cleanFixRate/cleanFixRate.Rdata")
+# Export cleaned data
+save(gpsClean,file="pipeline/telemetryData/gpsData/03a_cleanFixRate/cleanFixRate.Rdata")
 
 # Clean workspace
 rm(list=ls())
