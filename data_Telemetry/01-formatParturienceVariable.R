@@ -23,7 +23,7 @@ calf2018 <- calf2018 %>%
 calf2019 <- calf2019 %>%
   pivot_longer(cols="11 May 2019":"6 June 2019",names_to="AKDT_Date",
                values_to="calfStatus") %>%
-  dplyr::filter(!Moose_ID=="M1719H03") # Notes indicate that this a Bull.
+  dplyr::filter(!Notes=="Bull" | is.na(Notes)) # oh yeah don't forget to specify to include is.na
 
 # Combine both years into single data frame
 calfData <- rbind(calf2018,calf2019)
