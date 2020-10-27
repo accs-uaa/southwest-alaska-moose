@@ -83,7 +83,8 @@ save(deploy, file="pipleine/telemetryData/gpsData/01_createDeployMetadata/deploy
 # Also get rid of visual only observations
 deployMovebank <- deploy %>%
   filter(sensor_type != "none")
-write.csv(deployMovebank,"output/deployMetadataMovebank.csv",row.names=FALSE,na="")
+write.csv(deployMovebank,"output/telemetryData/deployMetadataMovebank.csv",
+          row.names=FALSE,na="")
 
 # Clean up workspace
 rm(deploy,deployMovebank)
