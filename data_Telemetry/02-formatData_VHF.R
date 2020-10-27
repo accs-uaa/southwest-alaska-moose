@@ -55,7 +55,7 @@ vhfData$AKDT_Date <- as.Date(vhfData$AKDT_Date,format="%Y-%m-%d")
 
 #### Export data----
 # As.Rdata file rather than .csv because I don't want to deal with reclassifying my dates
-save(vhfData,file="pipeline/telemetryData/vhfData/vhfData.Rdata")
+save(vhfData,file="pipeline/telemetryData/vhfData.Rdata")
 
 write_csv(vhfData,"output/telemetryData/cleanedVHFdata.csv")
 

@@ -2,8 +2,8 @@
 
 # Load packages and data----
 rm(list=ls())
-source("scripts/init.R")
-load("pipeline/03b_cleanLocations/cleanLocations.Rdata") 
+source("package_SpaceUse/init.R")
+load("pipeline/telemetryData/gpsData/03b_cleanLocations/cleanLocations.Rdata") 
 
 # Create tlocoh object
 coords<-gpsClean[,9:10]
@@ -22,7 +22,7 @@ set.seed(52)
 plotColors <- sample(allColors, 24)
 
 # Specify file path and name of individual kml layers
-filePath <- "pipeline/04b_animatePaths/temp/animateLocations"
+filePath <- "pipeline/spaceUse/04b_animatePaths/temp/animateLocations"
 ids <- unique(gpsClean$deployment_id)
 
 # Generate kml

@@ -4,9 +4,9 @@
 
 #### Load packages and data ----
 source("package_TelemetryFormatting/init.R")
-load("pipeline/telemetryData/vhfData/vhfData.Rdata")
+load("pipeline/telemetryData/vhfData.Rdata")
 load("pipeline/telemetryData/gpsData/03b_cleanLocations/cleanLocations.Rdata")
-load(file="pipeline/telemetryData/calvingSeason/calfData.Rdata")
+load(file="pipeline/telemetryData/parturienceData.Rdata")
 
 #### Format telemetry data ----
 
@@ -22,7 +22,7 @@ vhfData <- vhfData %>%
 # Create sensor_type == GPS for GPS data
 gpsClean <- gpsClean %>%
   mutate(sensor_type = "GPS", AKDT_Date = as.Date(datetime)) %>%
-  dplyr::select(-c(UTC_Date,UTC_Time,Easting,Northing))
+  dplyr::select(-c(UTC_Date,UTC_Time))
 
 # Combine VHF & GPS data
 allData <- plyr::rbind.fill(vhfData,gpsClean)
@@ -117,6 +117,6 @@ nrow(gpsCalvingSeason %>% filter(calfAlive=="1") %>%
 
 #### Export data ----
 # Save as .Rdata file
-save(gpsCalvingSeason, file="pipeline/telemetryData/calvingSeason/gpsCalvingSeason.Rdata")
+save(gpsCalvingSeason, file="pipeline/telemetryData/gpsCalvingSeason.Rdata")
 write_csv(gpsCalvingSeason, "output/telemetryData/cleanedGPSCalvingSeason.csv")
 rm(list = ls())
