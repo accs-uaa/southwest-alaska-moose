@@ -2,8 +2,6 @@
 
 # Movebank Attribute Dictionary: https://www.movebank.org/cms/movebank-content/movebank-attribute-dictionary
 
-# Last updated: 11 Mar 2020
-
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
