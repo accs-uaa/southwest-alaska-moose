@@ -5,7 +5,7 @@
 # Load packages and data ----
 rm(list=ls())
 source("package_TelemetryFormatting/init.R")
-load(file="pipeline/telemetryData/gpsCalvingSeason.Rdata")
+load(file="pipeline/telemetryData/gpsData/04-formatForCalvingSeason/gpsCalvingSeason.Rdata")
 
 # Create tlocoh object
 gpsCalvingSeason <- gpsCalvingSeason %>% arrange(animal_id)

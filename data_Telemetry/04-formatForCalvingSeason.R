@@ -117,6 +117,6 @@ nrow(gpsCalvingSeason %>% filter(calfAlive=="1") %>%
 
 #### Export data ----
 # Save as .Rdata file
-save(gpsCalvingSeason, file="pipeline/telemetryData/gpsCalvingSeason.Rdata")
+save(gpsCalvingSeason, file="pipeline/telemetryData/gpsData/04-formatForCalvingSeason/gpsCalvingSeason.Rdata")
 write_csv(gpsCalvingSeason, "output/telemetryData/cleanedGPSCalvingSeason.csv")
 rm(list = ls())
