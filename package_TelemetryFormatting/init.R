@@ -15,7 +15,7 @@ library(ctmm)
 library(tlocoh)
 
 # Statistics packages
-library(fitdistrplus)
+library(MASS)
 library(circular)
 
 # Functions

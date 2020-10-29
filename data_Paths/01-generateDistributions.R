@@ -1,6 +1,6 @@
 # Objectives: Explore empirical distribution of step lengths and turning angles for GPS data. Generate random distribution based on theoretical distributions in the exponential family (gamma for step length, von Mises for turning angles).
 
-# Code to generate theoretical distributions was taken from the source code for the amt::distributions function (https://github.com/jmsigner/amt/)
+# Code to generate theoretical distributions was adapted from the source code for the amt::distributions function (https://github.com/jmsigner/amt/)
 
 # Relevant literature:
 # 1) Forester JD, Im HK, Rathouz PJ. 2009. Accounting for animal movement in estimation of resource selection functions: Sampling and data analysis. Ecology 90:3554–3565.
@@ -27,36 +27,31 @@ gpsCalvingSeason$bearing_degrees <- unlist(lapply(move::angle(tracks), c, NA))
 gpsCalvingSeason$distance_meters <- unlist(lapply(move::distance(tracks), c, NA))
 
 #### Plot empirical distributions -----
-hist(gpsCalvingSeason$bearing_degrees,main="Empirical distribution of bearings",
+hist(gpsCalvingSeason$bearing_degrees,
+     main="Empirical distribution of bearings",
      xlab="Bearing (degrees)")
 
 hist(gpsCalvingSeason$distance_meters)
+hist(log(gpsCalvingSeason$distance_meters))
 summary(gpsCalvingSeason$distance_meters) # A few large distances (>8 km), but nothing that is impossible to achieve in 2 hours.
 
 rm(tracks)
 
 #### Gamma distribution for distances ----
-# Use lower argument to constrain estimated parameters to positive numbers only, as required by gamma distribution
-# Cannot have values of 0- will throw an error. Replace 0 values with the smallest, non-zero minimum distance (0.08 m for this dataset), as done in the amt package
 
+# Create numeric vector of empirical step length distances
 distances <- (gpsCalvingSeason %>% 
   filter(!is.na(distance_meters)) %>% 
   dplyr::select(distance_meters))$distance_meters
 
-minimumDistance <- min(distances[distances !=0])
+# Cannot have values of 0- will throw an error. Replace 0 values with the smallest, non-zero minimum distance (0.08 m for this dataset), as done in the amt package.
+minDist <- min(distances[distances !=0])
+distances[distances == 0] <- minDist
 
-distances[distances == 0] <- minimumDistance
+# Fit data to gamma distribution. Use lower argument to constrain estimated parameters to positive numbers only, as required by gamma distribution. Parameters estimated using MLE.
+fitGamma <- MASS::fitdistr(x = distances, densfun = "gamma", lower = c(0,0))
 
-fitGamma <- fitdistrplus::fitdist(data = distances,
-                                  distr = "gamma",
-                                  keepdata = FALSE,
-                                  lower = c(0, 0))
-
-# Generate 1,000,000 random numbers using estimated parameters
-randomDistances <- rgamma(n = 1e+06, shape=fitGamma$estimate[[1]], 
-       rate = fitGamma$estimate[[2]])
-
-#### Von Mises distribution for distances ----
+#### Von Mises distribution for angles ----
 turnAngles<- (gpsCalvingSeason %>% 
                 filter(!is.na(bearing_degrees)) %>% 
                 dplyr::select(bearing_degrees))$bearing_degrees
@@ -72,16 +67,19 @@ fitVonMisesParameters <- circular::mle.vonmises(fitVonMises)
 # kappa  is very close to zero- distribution is approx. uniform.
 # μ is a measure of location (the distribution is clustered around μ)
 
-# amt sets mu to zero: make_distribution(name = "vonmises", params = list(kappa = kappa, mu = 0)).
-# We copy this here, but either way our estimated mu is extremely close to zero (mean = -0.731, SE = 0.2579)
 
+#### Generate random distances and angles ----
+
+randomDistances <- rgamma(n = 1e+06, shape=fitGamma$estimate[[1]], 
+                          rate = fitGamma$estimate[[2]])
+
+# For random angles, amt sets mu to zero: make_distribution(name = "vonmises", params = list(kappa = kappa, mu = 0)). We copy this here, but either way our estimated mu is extremely close to zero (mean = -0.731, SE = 0.2579)
 randomAngles <- circular::rvonmises(n=1e+06, mu=circular(0), 
                           kappa=fitVonMisesParameters$kappa)
 
-# Degrees required for geosphere package, which we use to generate random points
+# Convert from radians to degrees
 randomDegrees <- as.numeric(circular::deg(randomAngles)) 
 hist(randomDegrees)
-# close to uniform distribution, which is what we expect given small kappa parameter
 
 #### Export random numbers ----
 write_csv(as.data.frame(randomDistances), 
@@ -90,7 +88,6 @@ write_csv(as.data.frame(randomDistances),
 write_csv(as.data.frame(randomDegrees), 
           path="pipeline/paths/randomrandomDegrees.csv",
           col_names = FALSE)
-
 
 #### Clean workspace ----
 rm(list=ls())
