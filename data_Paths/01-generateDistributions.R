@@ -57,36 +57,35 @@ turnAngles<- (gpsCalvingSeason %>%
                 dplyr::select(bearing_degrees))$bearing_degrees
 
 turnAngles <- circular::rad(turnAngles)
-fitVonMises <- circular::as.circular(turnAngles, type = "angles", 
+fitVM <- circular::as.circular(turnAngles, type = "angles", 
                            units = "radians", 
                            template = "none",
                            modulo = "asis", 
                            zero = 0, 
                            rotation = "counter")
-fitVonMisesParameters <- circular::mle.vonmises(fitVonMises)
-# kappa  is very close to zero- distribution is approx. uniform.
+fitVMParams <- circular::mle.vonmises(fitVM)
+list(fitVMParams$mu, fitVMParams$kappa)
+# kappa  is close to zero - distribution is approx. uniform.
 # μ is a measure of location (the distribution is clustered around μ)
 
-
 #### Generate random distances and angles ----
-
 randomDistances <- rgamma(n = 1e+06, shape=fitGamma$estimate[[1]], 
                           rate = fitGamma$estimate[[2]])
 
-# For random angles, amt sets mu to zero: make_distribution(name = "vonmises", params = list(kappa = kappa, mu = 0)). We copy this here, but either way our estimated mu is extremely close to zero (mean = -0.731, SE = 0.2579)
+# For random angles, amt sets mu to zero: make_distribution(name = "vonmises", params = list(kappa = kappa, mu = 0)). We copy this here, but either way our estimated μ is close to zero (mean = -0.731, SE = 0.2579)
 randomAngles <- circular::rvonmises(n=1e+06, mu=circular(0), 
-                          kappa=fitVonMisesParameters$kappa)
+                          kappa=fitVMParams$kappa)
 
 # Convert from radians to degrees
-randomDegrees <- as.numeric(circular::deg(randomAngles)) 
+randomAngles <- as.numeric(randomAngles) 
 hist(randomDegrees)
 
 #### Export random numbers ----
 write_csv(as.data.frame(randomDistances), 
           path="pipeline/paths/randomDistances.csv",
           col_names = FALSE)
-write_csv(as.data.frame(randomDegrees), 
-          path="pipeline/paths/randomrandomDegrees.csv",
+write_csv(as.data.frame(randomAngles), 
+          path="pipeline/paths/randomRadians.csv",
           col_names = FALSE)
 
 #### Clean workspace ----
