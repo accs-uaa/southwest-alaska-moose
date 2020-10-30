@@ -103,3 +103,6 @@ results <- createRandomPoints(x,y,ids,angles,distances)
 ##### Export results ----
 # Verify in GIS
 write_csv(results,"pipeline/paths/tempResults.csv")
+
+# Clean workspace
+rm(list=ls())
