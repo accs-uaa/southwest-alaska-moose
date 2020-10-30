@@ -8,10 +8,17 @@ load(file="pipeline/telemetryData/gpsData/04-formatForCalvingSeason/gpsCalvingSe
 angles <- as.numeric(read_csv(file="pipeline/paths/randomRadians.csv",col_names=FALSE)$X1)
 distances <- as.numeric(read_csv(file="pipeline/paths/randomDistances.csv",col_names=FALSE)$X1)
 
-#### Format data ----
+#### Define arguments for function ----
+# The function createRandomPoints requires 5 arguments:
 
-# Create  dataframe that includes starting location for every moose-Year and number of total steps
-# We can simply filter by RowID, since this variable numbers every location based on date-time (from earliest to latest) for each moose-Year path.
+# x = vector of starting X coordinate of each path, in a projected coordinate system
+# y = vector of starting Y coordinate of each path, in a projected coordinate system
+# id = vector of unique path IDs
+# angles = randomly generated angles in radians. in this case, angles were generated using a Von Mises distribution.
+# distances = randomly generated distances in meters.
+
+# Starting x y coordinates have a Row ID of 1 in our dataset
+# The RowID variable consecutively numbers every location based on date-time (from earliest to latest) for each moose-Year path.
 
 temp <- gpsCalvingSeason %>%
   filter(RowID==1) %>% 
@@ -20,16 +27,11 @@ temp <- gpsCalvingSeason %>%
 # Define variables for function
 x <- temp$Easting
 y <- temp$Northing
-ids <- vector("list", 42)
-names(ids) <- temp$mooseYear_id
-
-# Calculate total number of points per moose-Year path
-# Each random path will contain the same number of points as the observed path it was based on
-pathLength <- (plyr::count(gpsCalvingSeason, "mooseYear_id"))$freq
+ids <- temp$mooseYear_id
 
 rm(temp)
 
-#### Calculate random coordinates ----
+#### Calculate random starting points ----
 
 # https://stackoverflow.com/questions/7222382/get-lat-long-given-current-point-distance-and-bearing
 # https://www.fcc.gov/media/radio/find-terminal-coordinates
@@ -41,16 +43,14 @@ rm(temp)
 
 # https://math.stackexchange.com/questions/143932/calculate-point-given-x-y-angle-and-distance
 
-createRandomPoints <- function(x,y,pathLength,ids,
+createRandomPoints <- function(x,y,ids,
                                angles,distances){
   
   for (a in 1:length(x)) {
-    cat("Generating random points for path", names(ids[a]), "\n")
+    cat("Generating random points for path", ids[a], "\n")
     
     initX = x[a] # define starting location for moose-Year path 'a'
     initY = y[a]
-    
-    numberOfPoints = pathLength[a]
     
     n = 1 # set ticker
     
@@ -73,18 +73,11 @@ createRandomPoints <- function(x,y,pathLength,ids,
       
       # Add results to a dataframe
       if (n == 1) {
-        randomPoints <- data.frame(x = randomX, y = randomY)
+        randomPoints <- data.frame(x = randomX, y = randomY, 
+                                   startX = initX, startY = initY)
       } else {
-        randomPoints[n, 1] <- randomX
-        randomPoints[n, 2] <- randomY
-      }
-      
-      # Before moving onto next moose-Year path, add all generated random points to the ids list, which is where we will be storing our results
-      if (n == 10) {
-        ids[[a]] <- c(ids[[a]],
-                      list(randomX = randomPoints$x, randomY = randomPoints$y))
-      } else {
-        
+        randomPoints[n, 1:4] <- rbind(randomX,randomY,
+                                                 initX,initY)
       }
       
       # Move onto the next point to be generated for this moose-Year path.
@@ -92,11 +85,21 @@ createRandomPoints <- function(x,y,pathLength,ids,
       
     }
     
+    if (a == 1) {
+      randomDf <- randomPoints
+    } else {
+      randomDf <- rbind(randomPoints,randomDf)
+    }
+    
   }
-
-  return(ids)
+  randomDf$id <- rep(ids,each=10)
+  return(randomDf)
   
 }
 
-# Test function
-results <- createRandomPoints(x,y,pathLength,ids,angles,distances)
+# Run function
+results <- createRandomPoints(x,y,ids,angles,distances)
+
+##### Export results ----
+# Verify in GIS
+write_csv(results,"pipeline/paths/tempResults.csv")
