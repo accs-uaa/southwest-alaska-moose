@@ -36,7 +36,7 @@ forest_edge = os.path.join(data_folder, 'Data_Input/edge_distance/southwestAlask
 # Create tree cover raster if it does not already exist
 if arcpy.Exists(raster_treecover) == 0:
     # Define input and output arrays
-    sum_inputs = [raster_picgla, raster_picmar, raster_dectre]
+    sum_inputs = [study_area, raster_picgla, raster_picmar, raster_dectre]
     sum_outputs = [raster_treecover]
 
     # Create key word arguments
@@ -53,10 +53,10 @@ if arcpy.Exists(raster_treecover) == 0:
 # Define a maximum foliar cover value from the tree cover raster
 maximum_cover = int(arcpy.GetRasterProperties_management(raster_treecover, 'MAXIMUM').getOutput(0))
 
-# Iterate through all possible cover values and calculate the inverse density-weighted distance for that value
-n = 1
+# Iterate through all possible cover values greater than or equal to 5% and calculate the inverse density-weighted distance for that value
+n = 5
 edge_rasters = []
-while n <= 5:
+while n <= maximum_cover:
     # Define output raster
     if n < 10:
         edge_raster = os.path.join(data_folder, 'Data_Input/edge_distance', 'forest_edge_0' + str(n) + '.tif')

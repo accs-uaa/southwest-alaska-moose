@@ -12,7 +12,7 @@ def sum_rasters(**kwargs):
     """
     Description: calculates the sum of all input rasters in an array
     Inputs: 'work_geodatabase' -- path to a file geodatabase that will serve as the workspace
-            'input_array' -- an array containing all input rasters to be summed
+            'input_array' -- an array containing a raster study area (must be first) and all input rasters to be summed
             'output_array' -- an array containing the output summed raster
     Returned Value: Returns a raster dataset on disk containing the summed values
     Preconditions: requires existing numeric raster datasets of the same value type
@@ -20,6 +20,9 @@ def sum_rasters(**kwargs):
 
     # Import packages
     import arcpy
+    from arcpy.sa import Con
+    from arcpy.sa import ExtractByMask
+    from arcpy.sa import IsNull
     from arcpy.sa import Raster
     import datetime
     import time
@@ -27,7 +30,7 @@ def sum_rasters(**kwargs):
     # Parse key word argument inputs
     work_geodatabase = kwargs['work_geodatabase']
     input_rasters = kwargs['input_array']
-    grid_raster = input_rasters[0]
+    study_area = input_rasters.pop(0)
     output_raster = kwargs['output_array'][0]
     input_length = len(input_rasters)
 
@@ -41,15 +44,19 @@ def sum_rasters(**kwargs):
     arcpy.env.parallelProcessingFactor = "66%"
 
     # Set snap raster
-    arcpy.env.snapRaster = grid_raster
+    arcpy.env.snapRaster = study_area
 
     # Start timing function
     iteration_start = time.time()
     print(f'\tAdding rasters 1 and 2 of {input_length}...')
-    # Add the first two rasters in the input list
+    # Prepare the first two rasters in the input list
     raster_one = input_rasters.pop(0)
     raster_two = input_rasters.pop(0)
-    summed_raster = Raster(raster_one) + Raster(raster_two)
+    # Convert null values to zeros
+    cover_one = Con(IsNull(Raster(raster_one)), 0, Raster(raster_one))
+    cover_two = Con(IsNull(Raster(raster_two)), 0, Raster(raster_two))
+    # Sum the first two rasters in the input list
+    summed_raster = cover_one + cover_two
     # End timing
     iteration_end = time.time()
     iteration_elapsed = int(iteration_end - iteration_start)
@@ -65,8 +72,10 @@ def sum_rasters(**kwargs):
             iteration_start = time.time()
             raster_number = input_rasters.index(raster) + 3
             print(f'\tAdd raster {raster_number} of {input_length}...')
+            # Convert null values to zeros
+            cover_raster = Con(IsNull(Raster(raster)), 0, Raster(raster))
             # Add raster to the previous sum
-            summed_raster = summed_raster + Raster(raster)
+            summed_raster = summed_raster + cover_raster
             # End timing
             iteration_end = time.time()
             iteration_elapsed = int(iteration_end - iteration_start)
@@ -76,9 +85,23 @@ def sum_rasters(**kwargs):
                 f'\tCompleted at {iteration_success_time.strftime("%Y-%m-%d %H:%M")} (Elapsed time: {datetime.timedelta(seconds=iteration_elapsed)})')
             print('\t----------')
 
+    # Start timing function
+    iteration_start = time.time()
+    print(f'\tExtracting the summed raster to study area...')
+    # Extract the summed raster to the study area
+    extract_raster = ExtractByMask(summed_raster, study_area)
+    # End timing
+    iteration_end = time.time()
+    iteration_elapsed = int(iteration_end - iteration_start)
+    iteration_success_time = datetime.datetime.now()
+    # Report success
+    print(
+        f'\tCompleted at {iteration_success_time.strftime("%Y-%m-%d %H:%M")} (Elapsed time: {datetime.timedelta(seconds=iteration_elapsed)})')
+    print('\t----------')
+
     # Determine raster type and no data value
-    no_data_value = Raster(grid_raster).noDataValue
-    type_number = arcpy.GetRasterProperties_management(grid_raster, 'VALUETYPE').getOutput(0)
+    no_data_value = Raster(raster_one).noDataValue
+    type_number = arcpy.GetRasterProperties_management(raster_one, 'VALUETYPE').getOutput(0)
     value_types = ['1_BIT',
                    '2_BIT',
                    '4_BIT',
@@ -95,7 +118,7 @@ def sum_rasters(**kwargs):
     # Start timing function
     iteration_start = time.time()
     # Save the summed raster to disk
-    arcpy.CopyRaster_management(summed_raster,
+    arcpy.CopyRaster_management(extract_raster,
                                 output_raster,
                                 '',
                                 '',
