@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Prepare tussock tundra edge covariate
 # Author: Timm Nawrocki
-# Last Updated: 2020-10-28
+# Last Updated: 2020-11-03
 # Usage: Must be executed in an ArcGIS Pro Python 3.6 installation.
 # Description: "Prepare tussock tundra covariate" calculates the minimum inverse density-weighted distance from the cover of Eriophorum vaginatum.
 # ---------------------------------------------------------------------------
@@ -20,6 +20,7 @@ root_folder = 'ACCS_Work'
 
 # Define data folder
 data_folder = os.path.join(drive, root_folder, 'Projects/WildlifeEcology/Moose_SouthwestAlaska/Data')
+work_geodatabase = os.path.join(data_folder, 'Moose_SouthwestAlaska.gdb')
 
 # Define input rasters
 study_area = os.path.join(data_folder, 'Data_Input/southwestAlaska_StudyArea.tif')
@@ -31,35 +32,45 @@ tussock_edge = os.path.join(data_folder, 'Data_Input/edge_distance/southwestAlas
 # Define a maximum foliar cover value from the Eriophorum vaginatum cover raster
 maximum_cover = int(arcpy.GetRasterProperties_management(raster_erivag, 'MAXIMUM').getOutput(0))
 
-# Iterate through all possible cover values and calculate the inverse density-weighted distance for that value
-n = 1
+# Iterate through all possible cover values greater than or equal to 5% and calculate the inverse density-weighted distance for that value
+n = 5
 edge_rasters = []
-while n <= 5:
+while n <= maximum_cover:
     # Define output raster
     if n < 10:
-        edge_raster = os.path.join(data_folder, 'Data_Input/edge_distance', 'tussock_edge_0' + str(n) + '.tif')
+        edge_raster = os.path.join(data_folder, 'Data_Input/edge_distance', 'tundra_edge_0' + str(n) + '.tif')
     else:
-        edge_raster = os.path.join(data_folder, 'Data_Input/edge_distance', 'tussock_edge_' + str(n) + '.tif')
-
-    # Append output raster path to list
-    edge_rasters = edge_rasters + [edge_raster]
+        edge_raster = os.path.join(data_folder, 'Data_Input/edge_distance', 'tundra_edge_' + str(n) + '.tif')
 
     # Calculate edge raster if it does not already exist
     if arcpy.Exists(edge_raster) == 0:
-        # Define input and output arrays
-        edge_inputs = [raster_erivag]
-        edge_outputs = [edge_raster]
+        try:
+            # Define input and output arrays
+            edge_inputs = [raster_erivag]
+            edge_outputs = [edge_raster]
 
-        # Create key word arguments
-        edge_kwargs = {'target_value': n,
-                       'input_array': edge_inputs,
-                       'output_array': edge_outputs
-                       }
+            # Create key word arguments
+            edge_kwargs = {'work_geodatabase': work_geodatabase,
+                           'target_value': n,
+                           'input_array': edge_inputs,
+                           'output_array': edge_outputs
+                           }
 
-        # Calculate the inverse density-weighted distance for n% cover
-        print(f'Calculating inverse density weighted distance where foliar cover = {n}%...')
-        arcpy_geoprocessing(calculate_idw_distance, **edge_kwargs)
+            # Calculate the inverse density-weighted distance for n% cover
+            print(f'Calculating inverse density weighted distance where foliar cover = {n}%...')
+            arcpy_geoprocessing(calculate_idw_distance, **edge_kwargs)
+            print('----------')
+        except:
+            print(f'Foliar cover never equals {n}% cover.')
+            print('----------')
+    else:
+        print(f'Inverse density weighted distance for {n}% foliar cover already exists.')
         print('----------')
+
+    # Append raster to list if it exists
+    if arcpy.Exists(edge_raster) == 1:
+        # Append output raster path to list
+        edge_rasters = edge_rasters + [edge_raster]
 
     # Increase the iterator by one
     n += 1

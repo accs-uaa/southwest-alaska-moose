@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Prepare forest edge covariate
 # Author: Timm Nawrocki
-# Last Updated: 2020-11-01
+# Last Updated: 2020-11-03
 # Usage: Must be executed in an ArcGIS Pro Python 3.6 installation.
 # Description: "Prepare forest edge covariate" calculates the minimum inverse density-weighted distance from the summed cover of white spruce, black spruce, and deciduous trees.
 # ---------------------------------------------------------------------------
@@ -49,6 +49,9 @@ if arcpy.Exists(raster_treecover) == 0:
     print('Summing tree cover rasters...')
     arcpy_geoprocessing(sum_rasters, **sum_kwargs)
     print('----------')
+else:
+    print('Tree cover raster already exists.')
+    print('----------')
 
 # Define a maximum foliar cover value from the tree cover raster
 maximum_cover = int(arcpy.GetRasterProperties_management(raster_treecover, 'MAXIMUM').getOutput(0))
@@ -63,26 +66,35 @@ while n <= maximum_cover:
     else:
         edge_raster = os.path.join(data_folder, 'Data_Input/edge_distance', 'forest_edge_' + str(n) + '.tif')
 
-    # Append output raster path to list
-    edge_rasters = edge_rasters + [edge_raster]
-
     # Calculate edge raster if it does not already exist
     if arcpy.Exists(edge_raster) == 0:
-        # Define input and output arrays
-        edge_inputs = [raster_treecover]
-        edge_outputs = [edge_raster]
+        try:
+            # Define input and output arrays
+            edge_inputs = [raster_treecover]
+            edge_outputs = [edge_raster]
 
-        # Create key word arguments
-        edge_kwargs = {'work_geodatabase': work_geodatabase,
-                       'target_value': n,
-                       'input_array': edge_inputs,
-                       'output_array': edge_outputs
-                       }
+            # Create key word arguments
+            edge_kwargs = {'work_geodatabase': work_geodatabase,
+                           'target_value': n,
+                           'input_array': edge_inputs,
+                           'output_array': edge_outputs
+                           }
 
-        # Calculate the inverse density-weighted distance for n% cover
-        print(f'Calculating inverse density weighted distance where foliar cover = {n}%...')
-        arcpy_geoprocessing(calculate_idw_distance, **edge_kwargs)
+            # Calculate the inverse density-weighted distance for n% cover
+            print(f'Calculating inverse density weighted distance where foliar cover = {n}%...')
+            arcpy_geoprocessing(calculate_idw_distance, **edge_kwargs)
+            print('----------')
+        except:
+            print(f'Foliar cover never equals {n}% cover.')
+            print('----------')
+    else:
+        print(f'Inverse density weighted distance for {n}% foliar cover already exists.')
         print('----------')
+
+    # Append raster to list if it exists
+    if arcpy.Exists(edge_raster) == 1:
+        # Append output raster path to list
+        edge_rasters = edge_rasters + [edge_raster]
 
     # Increase the iterator by one
     n += 1
