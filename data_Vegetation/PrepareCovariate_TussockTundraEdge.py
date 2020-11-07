@@ -82,6 +82,7 @@ minimum_outputs = [tussock_edge]
 # Create key word arguments
 minimum_kwargs = {'cell_size': 10,
                   'output_projection': 3338,
+                  'work_geodatabase': work_geodatabase,
                   'input_array': minimum_inputs,
                   'output_array': minimum_outputs
                   }
