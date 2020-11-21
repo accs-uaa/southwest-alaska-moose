@@ -3,9 +3,8 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 
 #### Load packages and data---
-library(tidyverse)
-library(amt)
-library(circular)
+rm(list=ls())
+source("package_Paths/init.R")
 data("deer")
 
 #### Explore random steps----
@@ -20,7 +19,7 @@ ssf2 <- ssf1 %>%
 # amt uses fit_distr, which is a wrapper function for fitdist from the fitdistrplus package: https://github.com/jmsigner/amt/blob/master/R/fit_distr.R
 
 # Check to make sure I can replicate results...
-sl_distr = fit_distr(ssf1$sl_, "gamma") # gives parameters
+sl_distr <- fit_distr(ssf1$sl_, "gamma") # gives parameters
 fitdistrplus::fitdist(ssf1$sl_, "gamma", keepdata = FALSE, lower = 0)
 # scale = 1/rate
 # parameters are the same 
@@ -29,7 +28,7 @@ fitdistrplus::fitdist(ssf1$sl_, "gamma", keepdata = FALSE, lower = 0)
 # Compare amt::random_numbers function to base R rgamma
 # Using parameters generated above
 
-rand_sl = random_numbers(sl_distr, n = 1e+05)
+rand_sl <- random_numbers(sl_distr, n = 1e+05)
 hist(rand_sl,
      breaks=100,
      xlab="rand_sl",main="")
@@ -39,7 +38,7 @@ hist(rgamma(n = 1e+05, shape=0.77, scale = 472.3),
 
 # Explore turning angle distribution----
 # fit_distr uses circular package
-ta_distr = fit_distr(ssf1$ta_, "vonmises") # gives parameters
+ta_distr <- fit_distr(ssf1$ta_, "vonmises") # gives parameters
 x <- circular::as.circular(ssf1$ta_, type = "angles", 
                            units = "radians", 
                            template = "none",

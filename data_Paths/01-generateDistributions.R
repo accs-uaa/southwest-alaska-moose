@@ -10,7 +10,7 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 
 #### Load packages and data----
-source("package_TelemetryFormatting/init.R")
+source("package_Paths/init.R")
 load(file="pipeline/telemetryData/gpsData/04-formatForCalvingSeason/gpsCalvingSeason.Rdata")
 
 #### Format data----
