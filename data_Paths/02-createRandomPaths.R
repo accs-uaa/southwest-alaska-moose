@@ -33,13 +33,35 @@ pathsList <- createRandomPaths(initPts = startPts, numberOfPaths = 10,
                                ids = allIDs, pathLength = startPts$length,
                                angles = angles, distances = distances)
 
-##### Notes ----
-# https://stackoverflow.com/questions/7222382/get-lat-long-given-current-point-distance-and-bearing
-# https://www.fcc.gov/media/radio/find-terminal-coordinates
-# geosphere package returns longitude and latitude given starting location (in degrees), a bearing (in degrees), and a distance (in meters). Default values for radius and flattening of the Earth is for WGS 84
-# Error between this function and FCC website is a lot less than 10 m i.e. within the margin of error of our raster layers
+# Clean workspace
+rm(angles,distances,createRandomPaths,allIDs)
 
-######## Might be easier to calculate using Eastings/Northings- bypasses the Earth radius problem ######## not sure.. If the distances are anything larger than a few miles they will diverge from the globe and be up in the air???   
-#otherwise can use geosphere package destPoint, but i don't know if we need to specify a radius because we are so far north??
+#### Convert to dataframe ----
+# Columns represent paths
+# Rows represent sequential points at those paths
+pathsDf <- lapply(pathsList, function(x) do.call(rbind, x))
+pathsDf <- data.table::rbindlist(pathsDf,use.names=FALSE,idcol=TRUE)
+pathsDf$rowID <- as.integer(row.names(pathsDf))
 
-# https://math.stackexchange.com/questions/143932/calculate-point-given-x-y-angle-and-distance
+# Pivot dataframe into long format so that all coordinate columns are collapsed to an x,y column pair
+# Generate sequential number for every x,y, coordinate in a path
+
+pathsX <- pathsDf %>% 
+  pivot_longer(cols=V1:V10,names_to="pathID",names_prefix="V",values_to=c("x")) %>% 
+  dplyr::select(-c(V11:V20)) %>% 
+  mutate(pathID = as.numeric(pathID)) %>% 
+  arrange(.id,pathID,rowID)
+
+pathsY <- pathsDf %>% 
+  pivot_longer(cols=V11:V20,names_to="pathID",names_prefix="V",values_to=c("y")) %>% 
+  dplyr::select(-c(V1:V10)) %>% 
+  mutate(pathID = as.numeric(pathID)-10) %>% 
+  arrange(.id,pathID,rowID)
+
+randomPaths <- left_join(pathsX,pathsY,by=c(".id","pathID","rowID")) %>%
+  mutate(fullPath_id = paste(.id,pathID,sep="-")) %>% 
+  group_by(fullPath_id) %>% 
+  arrange(.id,pathID,rowID) %>% 
+  dplyr::mutate(pointID = row_number(rowID), fullPoint_id = paste(.id,pathID,pointID,sep="-")) %>% 
+  rename(mooseYear_id = .id) %>% 
+  dplyr::select(mooseYear_id,pathID,pointID,x,y,fullPath_id,fullPoint_id)

@@ -18,6 +18,11 @@
 
 # The output is a nested list that has the same number of components as the number of observed paths. Each component has n number of elements, where n = numberOfPaths. Each n is a list of 2 elements, x and y, which contain l number of paired xy coordinates, where l = pathLength.
 
+# Notes ----
+# Typical formula for calculating (x2,y2) uses cos(theta) for x and sin(theta) for y. This formula assumes that theta is a standard angle measured CCW from the positive x-axis (East).
+# In this function, we use sin(theta) for x and cos(theta) for y because angles represent bearings, which are measured clockwise from North.
+# This formula may not be suitable if distances are anything larger than a few miles.
+
 # Function ----
 createRandomPaths <-
   function(initPts, numberOfPaths, ids, pathLength, angles, distances) {
@@ -55,7 +60,7 @@ createRandomPaths <-
         b = 2
         
         while (b <= length) {
-          # draw random bearing and distance from distribution
+          # Draw random bearing and distance from distribution
           randomBearing <- sample(x = angles,
                                   size = 1,
                                   replace = TRUE)
@@ -64,8 +69,7 @@ createRandomPaths <-
                                    size = 1,
                                    replace = TRUE)
           
-          # calculate new coordinates given distance and bearing
-          # bearings are measured clockwise from due north
+          # Calculate new coordinates
           startX <- randomDistance * sin(randomBearing) + startX
           startY <- randomDistance * cos(randomBearing) + startY
           

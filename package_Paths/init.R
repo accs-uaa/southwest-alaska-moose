@@ -1,6 +1,7 @@
 # Data management packages
 library(plyr)
 library(tidyverse)
+library(data.table)
 
 # Animal movement packages
 library(move)
