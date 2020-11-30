@@ -20,8 +20,6 @@ startPts <- gpsCalvingSeason %>%
 
 startPts$length <- (plyr::count(gpsCalvingSeason, "mooseYear_id"))$freq
 
-rm(gpsCalvingSeason)
-
 # Create a list for storing random paths
 # The list will contain a named component for every moose-year
 allIDs <- unique(startPts$mooseYear_id)
@@ -65,3 +63,15 @@ randomPaths <- left_join(pathsX,pathsY,by=c(".id","pathID","rowID")) %>%
   dplyr::mutate(pointID = row_number(rowID), fullPoint_id = paste(.id,pathID,pointID,sep="-")) %>% 
   rename(mooseYear_id = .id) %>% 
   dplyr::select(mooseYear_id,pathID,pointID,x,y,fullPath_id,fullPoint_id)
+
+#### Export data----
+# To verify results in GIS
+# Datum is EPSG = 32604, WGS 84 UTM Zone 4N
+write_csv(randomPaths,"pipeline/paths/randomPaths.csv")
+write_csv(gpsCalvingSeason,"pipeline/paths/observedPaths.csv")
+
+# Save original pathsList in case we need to go back & check something
+save(pathsList, file="pipeline/paths/randomPaths_originalList.Rdata")
+
+# Clear workspace
+rm(list=ls())

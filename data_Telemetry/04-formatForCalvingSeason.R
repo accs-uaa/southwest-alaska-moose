@@ -29,14 +29,16 @@ allData <- plyr::rbind.fill(vhfData,gpsClean)
 
 #### Restrict to calving season ----
 
-# We define the calving season as the period from May 10th to June 15th
+# We define the calving season as the period from May 10th to first week of June
+# June 4 for 2018, June 6 for 2019
 # Based on Kassie's work on the Watana moose population
-# Might have to be revised since data on calf status ends on the first week of June
+# End dates are based on end of daily aerial surveys
 allData <- allData %>%
-  dplyr::filter( (month(AKDT_Date) == 5 & day(AKDT_Date) >= 10) | (month(AKDT_Date) == 6 & day(AKDT_Date) <= 15))
+  dplyr::filter( (month(AKDT_Date) == 5 & day(AKDT_Date) >= 10) | (year(AKDT_Date) == 2018 & month(AKDT_Date) == 6 & day(AKDT_Date) <= 4) |
+                   (year(AKDT_Date) == 2019 & month(AKDT_Date) == 6 & day(AKDT_Date) <= 6) )
 
 # Check if there are any mortality signals- would no longer actively selecting for habitat at that point...
-unique(allData$mortalityStatus) # only normal or NA if VHF
+unique(allData$mortalityStatus) # only normal or NA
 allData <- dplyr::select(.data=allData,-mortalityStatus)
 
 #### Encode moose-Year ID ----
@@ -52,14 +54,15 @@ allData <- allData %>%
   dplyr::mutate(RowID = row_number(datetime)) %>%
   ungroup()
 
-#### Explore number of relocations per moose-year ----
+# Calculate number of relocations per moose-year
 n <- plyr::count(allData, "mooseYear_id")
 
 n <- left_join(n,allData,by="mooseYear_id") %>%
   filter(!(duplicated(mooseYear_id))) %>%
   dplyr::select(mooseYear_id,freq,sensor_type)
 
-# Quick plot to show sample distribution for VHF data
+#### Sample size for VHF data ----
+# Plot to show sample distribution for VHF data
 temp <- n %>% filter(sensor_type=="VHF")
 hist(temp$freq,
      main="Number of VHF relocations per moose-year",
@@ -69,16 +72,27 @@ hist(temp$freq,
      col="#0072B2",border = "#FFFFFF")
 
 # Very few relocations (< 10 for most individuals)
-# Generating random paths for just the few VHF individuals that have enough relocations will be complicated by the inconsistent time intervals between relocations. While doable, we think it will be more worthwhile to keep the VHF data for model validation
+# Generating random paths for just the few VHF individuals that have enough relocations will be complicated by the inconsistent time intervals between relocations. While doable, we think it will be more worthwhile to keep the VHF data for model validation.
 
-# For GPS data, examine moose-Years that have less than ~400 relocations (37 days * 12 fixes per day @ 2 hour fix rates = complete set should have 444)
-n <- as.character(filter(n,sensor_type == "GPS" & freq < 400)$mooseYear_id) 
+#### Sample size for GPS data ----
+
+# Summary statistics for GPS data
+temp <- n %>% filter(sensor_type=="GPS")
+summary(temp$freq)
+
+# Minimum length of defined calving season is 26 days for 2018, 28 days for 2019
+# A full set of relocation data should have between 312 and 336 relocations (28 days * 12 fixes per day @ 2 hour fix rates)
+# Examine moose-Years that have less than ~300 relocations 
+n <- as.character(filter(n,sensor_type == "GPS" & freq < 300)$mooseYear_id) 
 
 temp <- allData %>%
   dplyr::filter(mooseYear_id %in% n)
 
-# All identified as a mortality in parturience datasheet
-# Since there is still a decent amount of relocations for each (min: 29), don't drop them form the dataset. All of our variables will be normalized to # of samples.
+unique(temp$animal_id)
+
+# These three individuals were identified as mortalities in parturience datasheet
+# We'll keep these moose in our dataset Since there is still a decent amount of relocations for each (min: 29). 
+# All of our variables will be normalized to # of samples.
 
 #### Drop VHF data ----
 gpsCalvingSeason <- allData %>%
