@@ -4,14 +4,15 @@
 # Author: Timm Nawrocki
 # Last Updated: 2020-11-01
 # Usage: Must be executed in an ArcGIS Pro Python 3.6 installation.
-# Description: "Extract to Boundary" is a function that extracts raster data to a feature or raster boundary.
+# Description: "Extract to Boundary" is a function that extracts raster data to a feature or raster boundary. All no data values are reset to a user-defined value.
 # ---------------------------------------------------------------------------
 
 # Define a function to extract raster data to a boundary
 def extract_to_boundary(**kwargs):
     """
     Description: extracts a raster to a boundary
-    Inputs: 'work_geodatabase' -- path to a file geodatabase that will serve as the workspace
+    Inputs: 'no_data_replace' -- a value to replace no data values
+            'work_geodatabase' -- path to a file geodatabase that will serve as the workspace
             'input_array' -- an array containing the target raster to extract (must be first), the boundary feature class or raster (must be second), and the grid raster (must be third)
             'output_array' -- an array containing the output raster
     Returned Value: Returns a raster dataset
@@ -20,12 +21,15 @@ def extract_to_boundary(**kwargs):
 
     # Import packages
     import arcpy
+    from arcpy.sa import Con
+    from arcpy.sa import IsNull
     from arcpy.sa import ExtractByMask
     from arcpy.sa import Raster
     import datetime
     import time
 
     # Parse key word argument inputs
+    no_data_replace = kwargs['no_data_replace']
     work_geodatabase = kwargs['work_geodatabase']
     input_raster = kwargs['input_array'][0]
     boundary_data = kwargs['input_array'][1]
@@ -43,10 +47,24 @@ def extract_to_boundary(**kwargs):
     arcpy.env.extent = Raster(grid_raster).extent
 
     # Start timing function
+    print(f'\tConverting no data values to {no_data_replace}...')
+    iteration_start = time.time()
+    # Convert no data values to data
+    nonull_raster = Con(IsNull(Raster(input_raster)), no_data_replace, Raster(input_raster))
+    # End timing
+    iteration_end = time.time()
+    iteration_elapsed = int(iteration_end - iteration_start)
+    iteration_success_time = datetime.datetime.now()
+    # Report success
+    print(
+        f'\tCompleted at {iteration_success_time.strftime("%Y-%m-%d %H:%M")} (Elapsed time: {datetime.timedelta(seconds=iteration_elapsed)})')
+    print('\t----------')
+
+    # Start timing function
     print('\tExtracting raster to boundary dataset...')
     iteration_start = time.time()
     # Extract raster to study area
-    extracted_raster = ExtractByMask(input_raster, boundary_data)
+    extracted_raster = ExtractByMask(nonull_raster, boundary_data)
     # End timing
     iteration_end = time.time()
     iteration_elapsed = int(iteration_end - iteration_start)

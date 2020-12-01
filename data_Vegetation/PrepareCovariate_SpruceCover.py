@@ -45,7 +45,8 @@ while n < len(rasters_initial):
     extract_outputs = [rasters_output[n]]
 
     # Create key word arguments
-    extract_kwargs = {'work_geodatabase': work_geodatabase,
+    extract_kwargs = {'no_data_replace': 0,
+                      'work_geodatabase': work_geodatabase,
                       'input_array': extract_inputs,
                       'output_array': extract_outputs
                       }
