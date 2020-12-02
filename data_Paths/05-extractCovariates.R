@@ -16,13 +16,16 @@ path_folder = paste(drive,
                     root_folder,
                     'paths',
                     sep = '/')
-topography_folder = paste(root_folder,
+topography_folder = paste(drive,
+                          root_folder,
                           'topography',
                           sep = '/')
-edge_folder = paste(root_folder,
+edge_folder = paste(drive,
+                    root_folder,
                     'edge_distance',
                     sep = '/')
-vegetation_folder = paste(root_folder,
+vegetation_folder = paste(drive,
+                          root_folder,
                           'vegetation',
                           sep = '/')
 
@@ -43,9 +46,6 @@ library(raster)
 library(rgdal)
 library(sp)
 library(stringr)
-
-# Read site metadata into dataframe
-path_data = read.csv(path_file, fileEncoding = 'UTF-8')
 
 # Define output csv file
 output_csv = paste(path_folder, 'allPaths_extracted.csv', sep = '/')
@@ -76,23 +76,16 @@ end = proc.time() - start
 print(end[3])
 
 # Convert field names to standard
-grid_extracted = grid_extracted %>%
+path_extracted = path_extracted %>%
   rename(mooseYear_id = mooseYear_) %>%
   rename(logitResponse = logitRespo) %>%
   rename(fullPath_id = fullPath_i) %>%
   rename(fullPoint_id = fullPoint_) %>%
   rename(forest_edge = southwestAlaska_ForestEdge) %>%
   rename(tundra_edge = southwestAlaska_TussockTundraEdge) %>%
-  rename(alnus = northAmericanBeringia_alnus) %>%
-  rename(betshr = northAmericanBeringia_betshr) %>%
-  rename(dectre = northAmericanBeringia_dectre) %>%
-  rename(erivag = northAmericanBeringia_erivag) %>%
-  rename(picgla = northAmericaBeringia_picgla_extract) %>%
-  rename(picmar = northAmericanBeringia_picmar_extract) %>%
-  rename(salshr = northAmericanBeringia_salshr) %>%
-  rename(wetsed = northAmericanBeringia_wetsed)
+  dplyr::select(-OBJECTID)
     
 # Export data as a csv
-write.csv(grid_extracted, file = output_csv, fileEncoding = 'UTF-8')
+write.csv(path_extracted, file = output_csv, fileEncoding = 'UTF-8')
 print('Finished extracting to paths.')
 print('----------')

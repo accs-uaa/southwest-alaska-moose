@@ -13,7 +13,7 @@ def extract_to_boundary(**kwargs):
     Description: extracts a raster to a boundary
     Inputs: 'no_data_replace' -- a value to replace no data values
             'work_geodatabase' -- path to a file geodatabase that will serve as the workspace
-            'input_array' -- an array containing the target raster to extract (must be first), the boundary feature class or raster (must be second), and the grid raster (must be third)
+            'input_array' -- an array containing the target raster to extract (must be first), the boundary feature class or raster (must be second), and the study area raster (must be third)
             'output_array' -- an array containing the output raster
     Returned Value: Returns a raster dataset
     Preconditions: the initial raster must exist on disk and the boundary and grid datasets must be created manually
@@ -33,7 +33,7 @@ def extract_to_boundary(**kwargs):
     work_geodatabase = kwargs['work_geodatabase']
     input_raster = kwargs['input_array'][0]
     boundary_data = kwargs['input_array'][1]
-    grid_raster = kwargs['input_array'][2]
+    study_area = kwargs['input_array'][2]
     output_raster = kwargs['output_array'][0]
 
     # Set overwrite option
@@ -43,14 +43,14 @@ def extract_to_boundary(**kwargs):
     arcpy.env.workspace = work_geodatabase
 
     # Set snap raster and extent
-    arcpy.env.snapRaster = grid_raster
-    arcpy.env.extent = Raster(grid_raster).extent
+    arcpy.env.snapRaster = study_area
+    arcpy.env.extent = Raster(study_area).extent
 
     # Start timing function
-    print(f'\tConverting no data values to {no_data_replace}...')
+    print('\tExtracting raster to boundary dataset...')
     iteration_start = time.time()
-    # Convert no data values to data
-    nonull_raster = Con(IsNull(Raster(input_raster)), no_data_replace, Raster(input_raster))
+    # Extract raster to study area
+    extracted_raster = ExtractByMask(input_raster, boundary_data)
     # End timing
     iteration_end = time.time()
     iteration_elapsed = int(iteration_end - iteration_start)
@@ -61,10 +61,11 @@ def extract_to_boundary(**kwargs):
     print('\t----------')
 
     # Start timing function
-    print('\tExtracting raster to boundary dataset...')
+    print(f'\tConverting no data values to {no_data_replace}...')
     iteration_start = time.time()
-    # Extract raster to study area
-    extracted_raster = ExtractByMask(nonull_raster, boundary_data)
+    # Convert no data values to data
+    nonull_raster = Con(IsNull(Raster(extracted_raster)), no_data_replace, Raster(extracted_raster))
+    final_raster = ExtractByMask(nonull_raster, study_area)
     # End timing
     iteration_end = time.time()
     iteration_elapsed = int(iteration_end - iteration_start)
@@ -91,7 +92,7 @@ def extract_to_boundary(**kwargs):
     value_type = value_types[int(type_number)]
     print(f'\tSaving extracted raster to disk as {value_type} raster with NODATA value of {no_data_value}...')
     # Save extracted raster to disk
-    arcpy.CopyRaster_management(extracted_raster,
+    arcpy.CopyRaster_management(final_raster,
                                 output_raster,
                                 '',
                                 '',
@@ -110,7 +111,7 @@ def extract_to_boundary(**kwargs):
     iteration_elapsed = int(iteration_end - iteration_start)
     iteration_success_time = datetime.datetime.now()
     # Report success
-    print(f'\t\tCompleted at {iteration_success_time.strftime("%Y-%m-%d %H:%M")} (Elapsed time: {datetime.timedelta(seconds=iteration_elapsed)})')
-    print('\t\t----------')
+    print(f'\tCompleted at {iteration_success_time.strftime("%Y-%m-%d %H:%M")} (Elapsed time: {datetime.timedelta(seconds=iteration_elapsed)})')
+    print('\t----------')
     out_process = f'\tSuccessfully extracted raster data to boundary.'
     return out_process
