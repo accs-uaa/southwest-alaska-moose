@@ -77,7 +77,6 @@ for (grid in grid_list) {
                       predictors_edge,
                       predictors_vegetation)
     print(paste('Number of predictor rasters: ', length(predictors_all), sep = ''))
-    print(predictors_all)
 
     # Generate a stack of all predictor rasters
     print('Creating raster stack...')
@@ -96,15 +95,7 @@ for (grid in grid_list) {
     # Find plot level mean values and convert field names to standard
     grid_extracted = grid_extracted %>%
       rename(forest_edge = southwestAlaska_ForestEdge) %>%
-      rename(tundra_edge = southwestAlaska_TussockTundraEdge) %>%
-      rename(alnus = northAmericanBeringia_alnus) %>%
-      rename(betshr = northAmericanBeringia_betshr) %>%
-      rename(dectre = northAmericanBeringia_dectre) %>%
-      rename(erivag = northAmericanBeringia_erivag) %>%
-      rename(picgla = northAmericaBeringia_picgla_extract) %>%
-      rename(picmar = northAmericanBeringia_picmar_extract) %>%
-      rename(salshr = northAmericanBeringia_salshr) %>%
-      rename(wetsed = northAmericanBeringia_wetsed)
+      rename(tundra_edge = southwestAlaska_TussockTundraEdge)
 
     # Export data as a csv
     write.csv(grid_extracted, file = output_csv, fileEncoding = 'UTF-8')
