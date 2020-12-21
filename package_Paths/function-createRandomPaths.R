@@ -25,7 +25,9 @@
 
 # Function ----
 createRandomPaths <-
-  function(initPts, numberOfPaths, ids, pathLength, angles, distances) {
+  function(initPts, numberOfPaths, ids, pathLength, angles, 
+           distances1, distances0,
+           calfStatus) {
     for (p in 1:nrow(initPts)) {
       # Ticker for number of paths
       a = 1
@@ -37,6 +39,7 @@ createRandomPaths <-
         
         id <- ids[p]
         length <- pathLength[p]
+        calfAtHeel <- calfStatus[p]
         
         pathsDf <- data.frame(x = startX, y = startY)
         
@@ -61,13 +64,21 @@ createRandomPaths <-
         
         while (b <= length) {
           # Draw random bearing and distance from distribution
+          # Distance distribution is different depending on reproductive status
           randomBearing <- sample(x = angles,
                                   size = 1,
                                   replace = TRUE)
           
-          randomDistance <- sample(x = distances,
-                                   size = 1,
-                                   replace = TRUE)
+          if (calfAtHeel == 1) {
+            randomDistance <- sample(x = distances1,
+                                     size = 1,
+                                     replace = TRUE)
+          } else {
+            randomDistance <- sample(x = distances0,
+                                     size = 1,
+                                     replace = TRUE)
+          }
+
           
           # Calculate new coordinates
           startX <- randomDistance * sin(randomBearing) + startX

@@ -1,4 +1,4 @@
-# Objectives: Subset telemetry data to include only calving season. Encode unique moose-Year. Explore sample size to ensure sufficient relocations for each moose-Year. Add boolean calfAlive variable.
+# Objectives: Subset telemetry data to include only calving season. Add boolean calfAtHeel variable and create unique ID for each moose-Year-calfAtHeel combination. Explore sample size to ensure sufficient relocations for each moose-Year. 
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
@@ -32,7 +32,7 @@ allData <- plyr::rbind.fill(vhfData,gpsClean)
 # We define the calving season as the period from May 10th to first week of June
 # June 4 for 2018, June 6 for 2019
 # Based on Kassie's work on the Watana moose population
-# End dates are based on end of daily aerial surveys
+# End dates are based on end of daily aerial surveys. Some observations were made two weeks later (~23 June) - we don't want to include those.
 allData <- allData %>%
   dplyr::filter( (month(AKDT_Date) == 5 & day(AKDT_Date) >= 10) | (year(AKDT_Date) == 2018 & month(AKDT_Date) == 6 & day(AKDT_Date) <= 4) |
                    (year(AKDT_Date) == 2019 & month(AKDT_Date) == 6 & day(AKDT_Date) <= 6) )
@@ -41,27 +41,42 @@ allData <- allData %>%
 unique(allData$mortalityStatus) # only normal or NA
 allData <- dplyr::select(.data=allData,-mortalityStatus)
 
-#### Encode moose-Year ID ----
-# Recode deployment_id to include year
+#### Add boolean parturience variable ----
+
+# Omit sensor_type column from calfData
+calfData <- calfData %>% 
+  dplyr::select(-sensor_type)
+
+# Join datasets
+calvingSeason <- left_join(allData,calfData,by = c("deployment_id", "AKDT_Date"))
+
+# Drop observations that do not have a calfAtHeel status
+calvingSeason <- calvingSeason %>% 
+  dplyr::filter(!is.na(calfAtHeel))
+
+#### Encode moose-Year-calf ID ----
+# Recode deployment_id to include year and calfAtHeel status
 # We are treating paths from different calving seasons as independent
-allData <- allData %>%
-  mutate(mooseYear_id = paste(deployment_id,year(AKDT_Date),sep="."))
+calvingSeason <- calvingSeason %>%
+  mutate(mooseYear_id = paste(deployment_id,year(AKDT_Date),paste0("calf",calfAtHeel),sep="."))
 
 # Create RowID variable for sorting
-allData <- allData %>%
+calvingSeason <- calvingSeason %>%
   group_by(mooseYear_id) %>%
   arrange(datetime,.by_group=TRUE) %>%
   dplyr::mutate(RowID = row_number(datetime)) %>%
   ungroup()
 
-# Calculate number of relocations per moose-year
-n <- plyr::count(allData, "mooseYear_id")
+#### Explore sample size ----
 
-n <- left_join(n,allData,by="mooseYear_id") %>%
+# Calculate number of relocations per moose-year
+n <- plyr::count(calvingSeason, "mooseYear_id")
+
+n <- left_join(n,calvingSeason,by="mooseYear_id") %>%
   filter(!(duplicated(mooseYear_id))) %>%
   dplyr::select(mooseYear_id,freq,sensor_type)
 
-#### Sample size for VHF data ----
+# For VHF data ----
 # Plot to show sample distribution for VHF data
 temp <- n %>% filter(sensor_type=="VHF")
 hist(temp$freq,
@@ -74,59 +89,34 @@ hist(temp$freq,
 # Very few relocations (< 10 for most individuals)
 # Generating random paths for just the few VHF individuals that have enough relocations will be complicated by the inconsistent time intervals between relocations. While doable, we think it will be more worthwhile to keep the VHF data for model validation.
 
+#### Drop VHF data ----
+gpsCalvingSeason <- calvingSeason %>%
+  dplyr::filter(sensor_type=="GPS")
+
+rm(n,temp)
+
 #### Sample size for GPS data ----
 
 # Summary statistics for GPS data
 temp <- n %>% filter(sensor_type=="GPS")
 summary(temp$freq)
 
-# Minimum length of defined calving season is 26 days for 2018, 28 days for 2019
-# A full set of relocation data should have between 312 and 336 relocations (28 days * 12 fixes per day @ 2 hour fix rates)
-# Examine moose-Years that have less than ~300 relocations 
-n <- as.character(filter(n,sensor_type == "GPS" & freq < 300)$mooseYear_id) 
+# Minimum number of points per path is 4. How many have less than 30 relocations?
+n <- as.character(filter(n,sensor_type == "GPS" & freq < 30)$mooseYear_id) 
 
-temp <- allData %>%
+temp <- gpsCalvingSeason %>%
   dplyr::filter(mooseYear_id %in% n)
 
-unique(temp$animal_id)
+unique(temp$animal_id) # 8 individuals
 
-# These three individuals were identified as mortalities in parturience datasheet
-# We'll keep these moose in our dataset Since there is still a decent amount of relocations for each (min: 29). 
 # All of our variables will be normalized to # of samples.
-
-#### Drop VHF data ----
-gpsCalvingSeason <- allData %>%
-  dplyr::filter(sensor_type=="GPS")
-
-rm(n,temp)
-
-#### Add boolean parturience variable ----
-
-# Omit sensor_type column from calfData
-calfData <- calfData %>% 
-  dplyr::select(-sensor_type)
-
-# Join datasets
-gpsCalvingSeason <- left_join(gpsCalvingSeason,calfData,by = c("deployment_id", "AKDT_Date"))
-
-#### Explore sample size ----
 
 # How many moose? How many moose-Years?
 length(unique(gpsCalvingSeason$deployment_id)) # 24 unique female individuals
-length(unique(gpsCalvingSeason$mooseYear_id)) # 42 moose-Year Paths
-
-# Are there some moose-Years for which we have absolutely no calving data? These will have to be dropped from the model.
-gpsCalvingSeason %>% mutate(calfNA = case_when(is.na(calfAlive) ~ 2,
-                                               !is.na(calfAlive) ~ calfAlive)) %>% 
-  group_by(mooseYear_id) %>% 
-  distinct(calfNA) %>% 
-  pivot_wider(id_cols = mooseYear_id,names_from=calfNA,
-              values_from = calfNA,names_prefix="calf") %>% 
-  filter(is.na(calf0) & is.na(calf1))
-# Some data exist for all 42 moose-Year paths.
+length(unique(gpsCalvingSeason$mooseYear_id)) # 59 moose-Year-calf Paths
 
 # How many moose-Years with calves for at least part of the season?
-nrow(gpsCalvingSeason %>% filter(calfAlive=="1") %>% 
+nrow(gpsCalvingSeason %>% filter(calfAtHeel=="1") %>% 
        distinct(mooseYear_id)) # 34 moose-Year Paths with calves
 
 #### Export data ----
