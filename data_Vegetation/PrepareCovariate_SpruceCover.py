@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Prepare spruce cover covariates
 # Author: Timm Nawrocki
-# Last Updated: 2020-11-01
+# Last Updated: 2020-11-30
 # Usage: Must be executed in an ArcGIS Pro Python 3.6 installation.
 # Description: "Prepare spruce cover covariates" extracts the foliar cover maps for black spruce and white spruce to the ranges for black spruce and white spruce to eliminate erroneous model predictions beyond the ranges of the species.
 # ---------------------------------------------------------------------------
@@ -18,18 +18,19 @@ root_folder = 'ACCS_Work'
 
 # Define data folder
 data_folder = os.path.join(drive, root_folder, 'Projects/WildlifeEcology/Moose_SouthwestAlaska/Data')
+vegetation_folder = os.path.join(drive, root_folder, 'Projects/VegetationEcology/AKVEG_QuantitativeMap/Data')
 work_geodatabase = os.path.join(data_folder, 'Moose_SouthwestAlaska.gdb')
 
 # Define input datasets
 snap_raster = os.path.join(data_folder, 'Data_Input/southwestAlaska_StudyArea.tif')
 range_picgla = os.path.join(data_folder, 'Data_Input/auxiliary_data/range_PiceaGlauca.shp')
 range_picmar = os.path.join(data_folder, 'Data_Input/auxiliary_data/range_PiceaMariana.shp')
-raster_picgla = os.path.join(data_folder, 'Data_Input/vegetation/northAmericanBeringia_picgla.tif')
-raster_picmar = os.path.join(data_folder, 'Data_Input/vegetation/northAmericanBeringia_picmar.tif')
+raster_picgla = os.path.join(vegetation_folder, 'Data_Output/rasters_final/northAmericanBeringia_picgla.tif')
+raster_picmar = os.path.join(vegetation_folder, 'Data_Output/rasters_final/northAmericanBeringia_picmar.tif')
 
 # Define output raster
-cover_picgla = os.path.join(data_folder, 'Data_Input/vegetation/northAmericanBeringia_picgla_extract.tif')
-cover_picmar = os.path.join(data_folder, 'Data_Input/vegetation/northAmericanBeringia_picmar_extract.tif')
+cover_picgla = os.path.join(data_folder, 'Data_Input/vegetation/picgla.tif')
+cover_picmar = os.path.join(data_folder, 'Data_Input/vegetation/picmar.tif')
 
 # Group inputs and outputs
 rasters_initial = [raster_picgla, raster_picmar]
@@ -44,7 +45,8 @@ while n < len(rasters_initial):
     extract_outputs = [rasters_output[n]]
 
     # Create key word arguments
-    extract_kwargs = {'work_geodatabase': work_geodatabase,
+    extract_kwargs = {'no_data_replace': 0,
+                      'work_geodatabase': work_geodatabase,
                       'input_array': extract_inputs,
                       'output_array': extract_outputs
                       }

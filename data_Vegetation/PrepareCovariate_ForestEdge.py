@@ -106,6 +106,8 @@ minimum_outputs = [forest_edge]
 # Create key word arguments
 minimum_kwargs = {'cell_size': 10,
                   'output_projection': 3338,
+                  'value_type': '32_BIT_SIGNED',
+                  'no_data': '-999',
                   'work_geodatabase': work_geodatabase,
                   'input_array': minimum_inputs,
                   'output_array': minimum_outputs
