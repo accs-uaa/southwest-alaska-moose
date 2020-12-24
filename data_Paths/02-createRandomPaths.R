@@ -29,7 +29,9 @@ pathsList <- vector("list", length(allIDs))
 names(pathsList) <- allIDs
 
 #### Run createRandomPaths function ----
-pathsList <- createRandomPaths(initPts = startPts, numberOfPaths = 100, 
+numPaths <- 100
+
+pathsList <- createRandomPaths(initPts = startPts, numberOfPaths = numPaths, 
                                ids = allIDs, pathLength = startPts$length,
                                angles = angles, distances1 = distances1,
                                distances0 = distances0,
@@ -39,40 +41,46 @@ pathsList <- createRandomPaths(initPts = startPts, numberOfPaths = 100,
 rm(angles,distances1,distances0,createRandomPaths,allIDs)
 
 #### Convert to dataframe ----
-# Columns represent paths
-# Rows represent sequential points at those paths
 pathsDf <- lapply(pathsList, function(x) do.call(rbind, x))
 pathsDf <- data.table::rbindlist(pathsDf,use.names=FALSE,idcol=TRUE)
 pathsDf$rowID <- as.integer(row.names(pathsDf))
 
-# Pivot dataframe into long format so that all coordinate columns are collapsed to an x,y column pair
-# Generate sequential number for every x,y, coordinate in a path
+# The result is wide dataframe where each row represents points along the path. X and Y coordinates are listed as columns. If >1 random path is generated per observed paths, all the x coordinates will be listed first, followed by all of the ys. E.g. if 2 random paths are generates, columns "V1" and "V2" represent the 1st and 2nd iterations of random x coordinates. Columns "V3" and "V4" represent the 1st and 2nd iterations of random y coordinates. Columns "V1" and "V3" form a xy pair.
 
-## !! cols will need to be changed if you specify a different number of paths e.g. for 10 paths, cols=V1:V10,V11:V200
+# Specify start and end of coordinate column names to pivot_longer on. Names depend on the number of paths that are generated.
+colx1 <- "V1"
+colx2 <- paste0("V",numPaths)
+coly1 <- paste0("V",(numPaths+1))
+coly2 <- paste0("V",(numPaths*2))
+
+# Pivot dataframe into long format and generate sequential number for every x,y, coordinate in a path, treating X and Y coordinate columns separately.
+
 pathsX <- pathsDf %>% 
-  pivot_longer(cols=V1:V100,names_to="pathID",names_prefix="V",values_to=c("x")) %>% 
-  dplyr::select(-c(V110:V200)) %>% 
+  pivot_longer(cols=all_of(colx1):all_of(colx2),names_to="pathID",names_prefix="V",values_to=c("x")) %>% 
+  dplyr::select(-c(all_of(coly1):all_of(coly2))) %>% 
   mutate(pathID = as.numeric(pathID)) %>% 
   arrange(.id,pathID,rowID)
 
 pathsY <- pathsDf %>% 
-  pivot_longer(cols=V110:V200,names_to="pathID",names_prefix="V",values_to=c("y")) %>% 
-  dplyr::select(-c(V1:V100)) %>% 
-  mutate(pathID = as.numeric(pathID)-10) %>% 
+  pivot_longer(cols=all_of(coly1):all_of(coly2),
+               names_to="pathID",names_prefix="V",values_to=c("y")) %>% 
+  dplyr::select(-c((all_of(colx1):all_of(colx2)))) %>% 
+  mutate(pathID = (as.numeric(pathID)-numPaths)) %>% 
   arrange(.id,pathID,rowID)
 
 randomPaths <- left_join(pathsX,pathsY,by=c(".id","pathID","rowID")) %>%
   mutate(fullPath_id = paste(.id,pathID,sep="-")) %>% 
   group_by(fullPath_id) %>% 
   arrange(.id,pathID,rowID) %>% 
-  dplyr::mutate(pointID = row_number(rowID), fullPoint_id = paste(.id,pathID,pointID,sep="-")) %>% 
+  dplyr::mutate(pointID = row_number(rowID), 
+                fullPoint_id = paste(.id,pathID,pointID,sep="-")) %>% 
   rename(mooseYear_id = .id) %>% 
   dplyr::select(mooseYear_id,pathID,pointID,x,y,fullPath_id,fullPoint_id)
 
 # Clean workspace
 rm(pathsDf,pathsList,pathsX,pathsY,startPts)
 
-#### Combine random & observed paths
+#### Combine random & observed paths ----
 
 # Create logistic response
 randomPaths$response <- "0"
