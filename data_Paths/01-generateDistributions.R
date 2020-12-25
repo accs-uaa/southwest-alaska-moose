@@ -13,10 +13,6 @@
 
 #### Load packages and data----
 source("package_Paths/init.R")
-source("package_Paths/function-exploreMoveMetrics.R")
-source("package_Paths/function-gammaDistribution.R")
-source("package_Paths/function-vonMisesDistribution.R")
-
 load(file="pipeline/telemetryData/gpsData/04-formatForCalvingSeason/gpsCalvingSeason.Rdata")
 
 #### Explore movement metrics ----
