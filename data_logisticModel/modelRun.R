@@ -8,13 +8,15 @@ source("package_logisticModel/init.R")
 paths <- read_csv(file="pipeline/paths/allPaths_forModel_meanCovariates.csv")
 
 #### Convert edge variables ----
-# Rather than express as meters, express as 0.1km?
-# If we pursue this, then move this to the other code.
+# Original distance and topographic units are in meters
+# Express distance units as 1/10 of a km instead
+# If we use this in final model, move to previous script.
 
 paths <- paths %>% 
   mutate(forest_edge_mean = forest_edge_mean/100,
-         tundra_edge_mean = tundra_edge_mean/100,
-         elevation_mean = elevation_mean/10)
+         tundra_edge_mean = tundra_edge_mean/100)
+
+#### Attempt 1: Run two models ----
 
 #### Split data into calf-at-heel versus no calf
 pathsWithCalf <- paths %>% 
@@ -25,10 +27,6 @@ pathsWithoutCalf <- paths %>%
 
 summary(pathsWithCalf)
 summary(pathsWithoutCalf)
-
-rm(paths)
-
-#### Run model ----
 
 # Drop Picea mariana - not a lot of it in study area, both sets do not have a lot of variation for the variable (for paths with calves: 0 to 0.3, without calves: 0 to 1.7). 
 
@@ -47,3 +45,13 @@ clogit(formula = response ~ tundra_edge_mean + alnus_mean + betshr_mean +
          dectre_mean + salshr_mean + picgla_mean +
          wetsed_mean + strata(mooseYear_id),
        data = pathsWithoutCalf)
+
+#### Attempt 2: Run single model ----
+# With calfAtHeel as grouping variable
+paths$calfAtHeel <- as.factor(paths$calfAtHeel)
+
+clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_mean +
+         tundra_edge_mean + alnus_mean + betshr_mean + dectre_mean +
+         erivag_mean + picgla_mean + salshr_mean +
+         wetsed_mean + strata(mooseYear_id),
+       data = paths)

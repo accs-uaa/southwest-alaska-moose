@@ -9,7 +9,7 @@
 
 exploreMoveMetrics <-
   
-  function(gpsData, group) {
+  function(gpsData, group, step="log") {
     if (group == 1) {
       gpsData <- gpsData %>%
         dplyr::filter(calfAtHeel == 1)
@@ -45,12 +45,14 @@ exploreMoveMetrics <-
          main = "Empirical distribution of bearings",
          xlab = "Bearing (degrees)")
     
+    if (step == "untransformed") {
     hist(gpsData$distance_meters,
          main = "Empirical distribution of step lengths",
          xlab = "Distance (meters)")
-    hist(log(gpsData$distance_meters),
+    } else {
+      hist(log(gpsData$distance_meters),
          main = "Log-transformed distribution of step lengths",
-         xlab = "Logarithmic distance (meters)")
+         xlab = "Logarithmic distance (meters)") }
     
     cat("Descriptive statistics of step length \n")
     print(summary(gpsData$distance_meters))
