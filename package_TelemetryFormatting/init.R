@@ -8,6 +8,7 @@ library(readxl)
 library(geosphere)
 library(sf)
 library(sp)
+library(ggmap)
 
 # Animal movement packages
 library(move)

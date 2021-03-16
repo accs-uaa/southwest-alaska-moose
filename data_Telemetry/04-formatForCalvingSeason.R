@@ -31,11 +31,22 @@ allData <- plyr::rbind.fill(vhfData,gpsClean)
 
 # We define the calving season as the period from May 10th to first week of June
 # June 4 for 2018, June 6 for 2019
+# Still waiting on 2020 calving sheets but assume it is June 5 (Friday) for now
 # Based on Kassie's work on the Watana moose population
 # End dates are based on end of daily aerial surveys. Some observations were made two weeks later (~23 June) - we don't want to include those.
 allData <- allData %>%
-  dplyr::filter( (month(AKDT_Date) == 5 & day(AKDT_Date) >= 10) | (year(AKDT_Date) == 2018 & month(AKDT_Date) == 6 & day(AKDT_Date) <= 4) |
-                   (year(AKDT_Date) == 2019 & month(AKDT_Date) == 6 & day(AKDT_Date) <= 6) )
+  dplyr::filter( (month(AKDT_Date) == 5 & 
+                    day(AKDT_Date) >= 10) | 
+                   (year(AKDT_Date) == 2018 
+                    & month(AKDT_Date) == 6 
+                    & day(AKDT_Date) <= 4) |
+                   (year(AKDT_Date) == 2019 
+                    & month(AKDT_Date) == 6 
+                    & day(AKDT_Date) <= 6) |
+                   (year(AKDT_Date) == 2020 
+                    & month(AKDT_Date) == 6 
+                    & day(AKDT_Date) <= 5)
+                   )
 
 # Check if there are any mortality signals- would no longer actively selecting for habitat at that point...
 unique(allData$mortalityStatus) # only normal or NA
@@ -93,16 +104,16 @@ hist(temp$freq,
 gpsCalvingSeason <- calvingSeason %>%
   dplyr::filter(sensor_type=="GPS")
 
-rm(n,temp)
-
 #### Sample size for GPS data ----
 
 # Summary statistics for GPS data
-temp <- n %>% filter(sensor_type=="GPS")
+temp <- n %>% 
+  dplyr::filter(sensor_type=="GPS")
+
 summary(temp$freq)
 
 # Minimum number of points per path is 4. How many have less than 30 relocations?
-n <- as.character(filter(n,sensor_type == "GPS" & freq < 30)$mooseYear_id) 
+n <- as.character(dplyr::filter(n,sensor_type == "GPS" & freq < 30)$mooseYear_id) 
 
 temp <- gpsCalvingSeason %>%
   dplyr::filter(mooseYear_id %in% n)

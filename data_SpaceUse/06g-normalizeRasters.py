@@ -19,7 +19,7 @@ arcpy.CheckOutExtension("Spatial")
 # Set root directory
 drive = 'C:\\'
 root_folder = 'Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose'
-raster_folder = os.path.join(drive, root_folder, 'pipeline\\06f_exportAsRasters')
+raster_folder = os.path.join(drive, root_folder, 'pipeline\\spaceUse\\06f_exportAsRasters')
 
 # Set overwrite option
 arcpy.env.overwriteOutput = True
@@ -44,7 +44,7 @@ snap_raster = os.path.join(drive, root_folder, 'gis\\northAmericanBeringia_Model
 arcpy.env.snapRaster = snap_raster
 
 # List all raster files to be processed, including file path
-filePath = "C:\\Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose\\pipeline\\06f_exportAsRasters"
+filePath = "C:\\Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose\\pipeline\\spaceUse\\06f_exportAsRasters"
 
 # From @giltay: https://stackoverflow.com/questions/120656/directory-tree-listing-in-python
 def listdir_fullpath(d):

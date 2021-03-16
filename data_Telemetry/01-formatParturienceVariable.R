@@ -44,7 +44,6 @@ calfData <- calfData %>%
 calfData$AKDT_Date <- as.Date(calfData$AKDT_Date,format="%e %B %Y")
 
 #### Export data----
-
 # As.Rdata file rather than .csv because I don't want to deal with reclassifying my dates
 save(calfData,file="pipeline/telemetryData/parturienceData.Rdata")
 

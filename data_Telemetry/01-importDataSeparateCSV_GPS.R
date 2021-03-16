@@ -1,18 +1,19 @@
 # Objective: Import data from GPS collars. Combine all data files into a single dataframe that can be used for analyses. Data for each moose are stored as separate .csv files
 
-# Last data download: 30 Mar 2020 by Kassie
+# Last data download: 14 Mar 2021 by Kassie
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
 # Load packages and data files----
+# Use pattern="GPS" to drop Mortality files
+# Should have 22 files
 source("package_TelemetryFormatting/init.R")
-dataFiles <- list.files(file.path('data'),full.names = TRUE,pattern=".csv")
+dataFiles <- list.files(file.path('data'),full.names = TRUE,pattern="GPS")
 
 # Read in each file and combine into single dataframe
 # "No" column is not unique across all individuals, but is unique within each individual
-# Sorted in decreasing order? (newest to oldest)
-# Check order of "No" column- sometimes it goes from newest to oldest instead and arrange would have to be coded as -No.
+# Doesn't really matter whether No is by increasing or decreasing date since we will reorder use the datetime column.
 
 for (i in 1:length(dataFiles)) {
   f <- dataFiles[i]
@@ -51,11 +52,11 @@ length(unique(gpsData$CollarID))
 # Reason: No need for "earth-fixed" coordinates (https://en.wikipedia.org/wiki/ECEF). Use UTM or Lat/Long
 
 gpsData <- gpsData %>%
-  select(No, CollarID, UTC_Date,UTC_Time, LMT_Date, LMT_Time,
+  dplyr::select(No, CollarID, UTC_Date,UTC_Time, LMT_Date, LMT_Time,
          Latitude....,Longitude....,Mort..Status,DOP,FixType,Easting,Northing)
 
-#### Export----
-save(gpsData, file="pipeline/01_importData/gpsRaw.Rdata")
+####Export----
+save(gpsData, file="pipeline/telemetryData/gpsData/01_importData/gpsRaw.Rdata")
 
 # Clean workspace
 rm(list=ls())
