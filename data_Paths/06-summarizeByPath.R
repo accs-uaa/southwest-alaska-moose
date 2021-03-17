@@ -1,4 +1,4 @@
-# Objective: Summarize point-level variables as the mean for each path. Exclude random paths that have more than XX of lake. Randomly select 10 paths from the subset of the "lake-free" random paths for use in future modeling.
+# Objective: Summarize point-level variables as the mean for each path. Exclude random paths that have more than 10 points in a lake. Randomly select 10 paths from the subset of the "lake-free" random paths for use in future modeling.
 
 # Note: Coordinates are now in projected geographic system NAD83 (2011) Alaska Albers EPSG:6393
 

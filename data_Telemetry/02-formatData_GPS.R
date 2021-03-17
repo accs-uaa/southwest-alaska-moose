@@ -33,7 +33,7 @@ gpsData <- gpsData %>%
 coordLatLong <- SpatialPoints(cbind(gpsData$longX, gpsData$latY), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 coordLatLong # check that signs are correct
 
-# Transform to geographic coordinates
+# Transform to projected coordinates
 # Use EPSG=3338 (Alaska Albers, NAD 83 datum)
 coordUTM <- spTransform(coordLatLong, CRS("+init=epsg:3338"))
 coordUTM <- as.data.frame(coordUTM)

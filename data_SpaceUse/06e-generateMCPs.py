@@ -4,7 +4,6 @@
 
 # Load modules
 import arcpy
-from arcpy import env
 import os
 
 # Set root directory
@@ -16,17 +15,19 @@ arcpy.env.overwriteOutput = True
 
 # Define working geodatabase
 geodatabase = os.path.join(drive, root_folder, 'gis\\mooseHomeRanges.gdb')
-env.workspace = geodatabase # Needs to be set for Minimum Bounding Geometry code to run
+arcpy.env.workspace = geodatabase # Needs to be set for Minimum Bounding Geometry code to run
 
-# Create inputs
+# Define inputs
 input_projection = 3338
 input_csv = os.path.join(drive, root_folder, 'output\\telemetryData\\cleanedGPSdata.csv')
 x_coords = "Easting"
 y_coords = "Northing"
+unique_id = "deployment_id"
+
+# Define outputs
 output_layer = "telemetry_layer"
 output_shapefile = "cleanedGPSdata"
 output_polygon = os.path.join(geodatabase,"convexHulls")
-unique_id = "deployment_id"
 
 # Define the initial projection
 initial_projection = arcpy.SpatialReference(input_projection)
