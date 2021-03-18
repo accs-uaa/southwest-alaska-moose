@@ -113,7 +113,7 @@ allPaths <- rbind.fill(gpsCalvingSeason,randomPaths)
 
 #### Export data----
 # To verify results in GIS
-# Datum is EPSG = 32604, WGS 84 UTM Zone 4N
+# Projection is EPSG = 3338, NAD 83 Alaska Albers
 write_csv(allPaths,file="pipeline/paths/allPaths.csv")
 
 # Clear workspace

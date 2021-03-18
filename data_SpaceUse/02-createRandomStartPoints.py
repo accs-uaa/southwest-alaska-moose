@@ -8,7 +8,7 @@
 # Import packages
 import arcpy
 import os
-import pandas
+
 # Set root directory
 drive = 'C:\\'
 root_folder = 'Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose'
@@ -20,34 +20,25 @@ arcpy.env.overwriteOutput = True
 geodatabase = os.path.join(drive, root_folder, 'gis\\mooseHomeRanges.gdb')
 arcpy.env.workspace = geodatabase
 
-# Set projection
+# Define inputs
 input_projection = 3338
-initial_projection = arcpy.SpatialReference(input_projection)
+boundaries = "convexHulls"
+number_of_pts = 100
+pts_join_field = "CID" # default name created by CreateRandomPoints function
+boundaries_join_field = "OBJECTID"
+field_list = ["deployment_id"]
 
 #  Define outputs
 output_name = "randomStartPts"
-boundaries = "convexHulls"
-number_of_pts = 100
 
-# Define inputs
-# We want to be able to retrace each random point to the ID of the moose/home range it was generated from.
-input_csv = os.path.join(drive, root_folder, 'output\\telemetryData\\cleanedGPSdata.csv')
-
-# Create list of unique moose IDs
-# Repeat this list as many times as there are points
-gpsData = pandas.read_csv(input_csv)
-unique_id = gpsData.deployment_id.unique()
-unique_id = unique_id.repeat(number_of_pts)
+# Set projection
+initial_projection = arcpy.SpatialReference(input_projection)
 
 # Create 100 random points within the boundaries of the convex hull polygons that represent moose home ranges
-arcpy.CreateRandomPoints_management(out_path = geodatabase, out_name = output_name, constraining_feature_class = boundaries, number_of_points_or_field = number_of_pts)
+arcpy.CreateRandomPoints_management(out_path=geodatabase, out_name=output_name, constraining_feature_class=boundaries, number_of_points_or_field=number_of_pts)
+
+# Join random points to convex hull polygons by the ID field so we can associate individual moose with points
+arcpy.JoinField_management(in_data=output_name, in_field=pts_join_field, join_table=boundaries, join_field=boundaries_join_field, fields=field_list)
 
 # Add coordinate fields
 arcpy.AddXY_management(output_name)
-
-# Still need to code ----
-# Create fields for random values
-fieldInt = "fieldInt"
-fieldFlt = "fieldFlt"
-arcpy.AddField_management(outName, fieldInt, "LONG")  # add long integer field
-arcpy.AddField_management(outName, fieldFlt, "FLOAT") # add float field
