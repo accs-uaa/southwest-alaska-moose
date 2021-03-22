@@ -89,7 +89,10 @@ rm(gpsRedeployOnly,gpsUniqueOnly,redeployList,makeRedeploysUnique,tagRedeploy)
 
 # Drop unnecessary columns
 
+# Create unique mooseYear ID
+
 gpsData <- gpsData %>%
+  mutate(mooseYear = paste(deployment_id,year(gpsData$LMT_Date),sep=".")) %>% 
 group_by(deployment_id) %>%
   arrange(datetime) %>%
   dplyr::mutate(RowID = row_number(datetime)) %>%

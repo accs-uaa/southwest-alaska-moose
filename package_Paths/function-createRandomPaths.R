@@ -1,18 +1,14 @@
-# Objective: This function generates a specified number of random paths for each observed path. Each random path has the same starting location and the same number of points as the observed path on which it is based. Step lengths and turning angles are randomly sampled from theoretical distributions, whose parameters were obtained by fitting data from our study population.
+# Objective: This function generates movement paths using randomly generated turning angles, step lengths, and starting locations. Each random path has the same number of points as the observed path on which it is based. Step lengths and turning angles are randomly sampled from theoretical distributions, whose parameters were obtained by fitting data from our study population.
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
 # User-specified arguments ----
 
-# 01. initPts = a dataframe where each row represents that starting XY coordinates of the observed paths. XY coordinates must be stored in columns named Easting and Northing
+# randomPoints = a dataframe where each row represents a randomly generated coordinate (ESPG = 3338).
 
-# 02. numberOfPaths = # of random paths to generate for every observed moose-year path
+# pathInfo = a dataframe that contains a list of each sampling unit (i.e., animal individuals or moose-year-status in our case), calf status, number of points to be generated for each path (i.e., path length), and number of paths to be generated for each moose-year .
 
-# 03. pathLength = # of points to be generated for each path. can be a single number or a vector with the same length and ordering as the number of ids/observed paths.
-
-# 04. angles = vector of turning angles, in radians, from which to randomly sample an angle that is used to generate a random XY coordinate.
-
-# 05. distances = vector of distances (step lengths), in meters, from which to randomly sample a distance that is used to generate a random XY coordinate.
+# dist = a list that contains vectors of turning angles and distances used to generate a random coordinate. Turning angles are in radians and distances are in meters.
 
 # Output ----
 
@@ -25,80 +21,83 @@
 
 # Function ----
 createRandomPaths <-
-  function(initPts, numberOfPaths, ids, pathLength, angles, 
-           distances1, distances0,
-           calfStatus) {
-    for (p in 1:nrow(initPts)) {
-      # Ticker for number of paths
-      a = 1
-      
-      while (a <= numberOfPaths) {
-        # Define variables
-        startX <- initPts$Easting[p]
-        startY <- initPts$Northing[p]
-        
-        id <- ids[p]
-        length <- pathLength[p]
-        calfAtHeel <- calfStatus[p]
-        
-        pathsDf <- data.frame(x = startX, y = startY)
-        
-        cat(
-          "Generating",
-          length,
-          "random points for moose-year",
-          id,
-          "..... path",
-          a,
-          "of",
-          numberOfPaths,
-          "\n"
-        )
-        
-        cat("Initial coordinates are", startX, startY, "\n")
-        
-        # Ticker for path length
-        # Start at b = 2 because initial location has already been generated.
-        
-        b = 2
-        
-        while (b <= length) {
-          # Draw random bearing and distance from distribution
-          # Distance distribution is different depending on reproductive status
-          randomBearing <- sample(x = angles,
-                                  size = 1,
-                                  replace = TRUE)
-          
-          if (calfAtHeel == 1) {
-            randomDistance <- sample(x = distances1,
-                                     size = 1,
-                                     replace = TRUE)
-          } else {
-            randomDistance <- sample(x = distances0,
-                                     size = 1,
-                                     replace = TRUE)
-          }
+  function(randomPoints, pathInfo, dist) {
 
-          
-          # Calculate new coordinates
-          startX <- randomDistance * sin(randomBearing) + startX
-          startY <- randomDistance * cos(randomBearing) + startY
-          
-          # Add results to a dataframe
-          pathsDf[b, 1:2] <- rbind(startX, startY)
-          
-          b <- b + 1
-        }
-        
-        # Add results to a list
-        pathsList[p][[1]][[a]] <-
-          list(x = as.numeric(pathsDf$x),
-               y = as.numeric(pathsDf$y))
-        
-        a <- a + 1
-        
+ids <- unique(pathInfo$idYearStatus)
+pathsList <- vector("list", length(ids))
+names(pathsList) <- ids
+
+for (i in 1:length(ids)) {
+  
+  # Define variables
+  idYearCalf <- ids[i]
+  pathInfo_id <- subset(pathInfo, idYearStatus == idYearCalf)
+  idYearOnly <- paste(str_split(idYearCalf,pattern="\\.")[[1]][1],
+                               str_split(idYearCalf,pattern="\\.")[[1]][2],
+                               sep=".")
+  startPoints <- subset(randomPoints,mooseYear == idYearOnly)
+  length <- pathInfo_id$length  
+  status <- pathInfo_id$status
+  numberOfPaths <- pathInfo_id$numberOfPaths
+  
+  # Start ticker for number of paths
+  # Cycle through as many random start points as the number of paths specified
+  a = 1
+  
+  while (a <= numberOfPaths) {
+    
+    # Specify starting coordinates and dataframe to store results
+    start_X <- startPoints$POINT_X[a]
+    start_Y <- startPoints$POINT_Y[a]
+    pathsDf <- data.frame(x = start_X, y = start_Y)
+    
+    cat("Generating",length,
+      "random points for moose-year",idYearCalf,
+      "..... path", a, "of", numberOfPaths, "\n")
+    
+    cat("Initial coordinates are", start_X, start_Y, "\n")
+    
+    # Generate path that is the same length as observed path
+    # Start ticker b = 2 because initial location has already been generated.
+    b = 2
+    
+    while (b <= length) {
+      # Draw random bearing and distance from distribution
+      # Distance distribution is different depending on reproductive status
+      randomBearing <- sample(x = dist$angles,
+                              size = 1,
+                              replace = TRUE)
+      
+      if (status == 1) {
+        randomDistance <- sample(x = dist$distCalf1,
+                                 size = 1,
+                                 replace = TRUE)
+      } else {
+        randomDistance <- sample(x = dist$distCalf0,
+                                 size = 1,
+                                 replace = TRUE)
       }
       
+      
+      # Calculate new coordinates. Overwrite original ones.
+      start_X <- randomDistance * sin(randomBearing) + start_X
+      start_Y <- randomDistance * cos(randomBearing) + start_Y
+      
+      # Add results to a dataframe
+      pathsDf[b, 1:2] <- rbind(start_X, start_Y)
+      
+      b <- b + 1
     }
-    return(pathsList)
+    
+    # Add results to list
+    pathsList[i][[1]][[a]] <-
+      list(x = as.numeric(pathsDf$x),
+           y = as.numeric(pathsDf$y))
+    
+    a <- a + 1
+    
+    }
+ 
+}
+return(pathsList)
   }

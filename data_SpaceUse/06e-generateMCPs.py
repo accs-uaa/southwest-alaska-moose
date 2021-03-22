@@ -1,4 +1,4 @@
-# Objectives: Create convex hull polygon for every individual moose. These polygons will be used in our habitat selection analysis to define a bounding geometry within which to generate a random initial location for our random paths. Can also be used to compare home range estimates with other studies in Alaska.
+# Objectives: Create convex hull polygon for every individual moose for every year. These polygons will be used in our habitat selection analysis to define a bounding geometry within which to generate a random initial location for our random paths. Can also be used to compare home range estimates with other studies in Alaska.
 
 # Author: A. Droghini (adroghini@alaska.edu), Alaska Center for Conservation Science
 
@@ -22,7 +22,7 @@ input_projection = 3338
 input_csv = os.path.join(drive, root_folder, 'output\\telemetryData\\cleanedGPSdata.csv')
 x_coords = "Easting"
 y_coords = "Northing"
-unique_id = "deployment_id"
+unique_id = "mooseYear"
 
 # Define outputs
 output_layer = "telemetry_layer"

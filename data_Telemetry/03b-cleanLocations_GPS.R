@@ -121,7 +121,7 @@ plotOutliers(subsetOutlier,1,nrow(subsetOutlier))
 
 rm(subsetOutlier,plotOutliers)
 
-#### Commit changes----
+#### Commit changes ----
 # Restart from move object since we will have to recalculate speed and distances
 
 gpsClean <- gpsClean %>%

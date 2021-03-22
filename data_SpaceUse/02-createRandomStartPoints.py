@@ -26,7 +26,7 @@ boundaries = "convexHulls"
 number_of_pts = 100
 pts_join_field = "CID" # default name created by CreateRandomPoints function
 boundaries_join_field = "OBJECTID"
-field_list = ["deployment_id"]
+field_list = ["mooseYear"]
 
 #  Define outputs
 output_name = "randomStartPts"

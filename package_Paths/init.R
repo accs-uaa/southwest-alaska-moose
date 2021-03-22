@@ -11,6 +11,9 @@ library(amt)
 library(MASS)
 library(circular)
 
+# Spatial packages
+library(rgdal)
+
 # Functions
 source("package_Paths/function-createRandomPaths.R")
 source("package_Paths/function-exploreMoveMetrics.R")

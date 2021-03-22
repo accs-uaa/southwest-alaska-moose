@@ -57,5 +57,10 @@ write_csv(as.data.frame(randomAngles),
           file="pipeline/paths/randomRadians.csv",
           col_names = FALSE)
 
+# Export as .Rdata list for use in the next script
+dist <- list(randomAngles,dist1,dist0)
+names(dist) <- (c("angles","distCalf1","distCalf0"))
+save(dist, file="pipeline/paths/theoreticalDistributions.Rdata")
+
 #### Clean workspace ----
 rm(list=ls())
