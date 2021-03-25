@@ -16,8 +16,9 @@ source("package_Paths/init.R")
 load(file="pipeline/telemetryData/gpsData/04-formatForCalvingSeason/gpsCalvingSeason.Rdata")
 
 #### Explore movement metrics ----
-dataCalf1 <- exploreMoveMetrics(gpsCalvingSeason,group=1)
-dataCalf0 <- exploreMoveMetrics(gpsCalvingSeason,group=0)
+calvingSeason$sensor_type <- "GPS"
+dataCalf1 <- exploreMoveMetrics(calvingSeason,group=1)
+dataCalf0 <- exploreMoveMetrics(calvingSeason,group=0)
 
 # Histograms of bearings show no evidence of directional persistence.
 
@@ -35,7 +36,7 @@ dist0 <- gammaDistribution(dataCalf0$distance_meters)
 # If κ = 0, distribution is uniform
 vonMisesDistribution(dataCalf1$bearing_degrees)
 vonMisesDistribution(dataCalf0$bearing_degrees)
-# κ = 0.016 and 0.041 - distribution is approx. uniform.
+# κ = 0.005 and 0.036 - distribution is approx. uniform.
 
 # To get random angles, set κ = 0 to generate a uniform distribution
 # Set μ = 0, meaning left and right turns are equally likely. This is a property of the circular uniform distribution (https://en.wikipedia.org/wiki/Circular_uniform_distribution); also Avgar et al. 2016

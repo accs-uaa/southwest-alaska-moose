@@ -12,13 +12,13 @@ exploreMoveMetrics <-
   function(gpsData, group, step="log") {
     if (group == 1) {
       gpsData <- gpsData %>%
-        dplyr::filter(calfAtHeel == 1)
+        dplyr::filter(calfStatus == 1)
       
       cat("Movement metrics for ... cows with calf \n")
       
     } else {
       gpsData <- gpsData %>%
-        dplyr::filter(calfAtHeel == 0)
+        dplyr::filter(calfStatus == 0)
       
       cat("Movement metrics for ... cows without calf \n")
     }

@@ -25,13 +25,13 @@ numPaths = 100
 # Calculates number of points on every observed path
 # Defines number of paths that are to be generated for every moose-year
 # Rename variables to correspond with internal function naming
-observedPaths <- gpsCalvingSeason %>%
+observedPaths <- calvingSeason %>%
   filter(RowID==1) %>% 
-  dplyr::select(mooseYear_id,calfAtHeel) %>% 
-  mutate(length = (plyr::count(gpsCalvingSeason, "mooseYear_id"))$freq,
+  dplyr::select(mooseYear_id,calfStatus) %>% 
+  mutate(length = (plyr::count(calvingSeason, "mooseYear_id"))$freq,
          numberOfPaths = numPaths) %>% 
   rename(idYearStatus = mooseYear_id, 
-         status = calfAtHeel)
+         status = calfStatus)
 
 #### Run function ----
 pathsList <- createRandomPaths(randomPoints = randomPoints, 
@@ -81,12 +81,12 @@ rm(pathsDf,pathsList,pathsX,pathsY)
 
 # Create logistic response
 randomPaths$response <- "0"
-gpsCalvingSeason$response <- "1"
+calvingSeason$response <- "1"
 
-# Add calfAtHeel variable to randomPaths
+# Add calfStatus variable to randomPaths
 # This variable will be used to split paths into two groups (cows with and without calves) and run two separate models
-statusObserved <- gpsCalvingSeason %>% 
-  dplyr::select(mooseYear_id,RowID,calfAtHeel,deployment_id)
+statusObserved <- calvingSeason %>% 
+  dplyr::select(mooseYear_id,RowID,calfStatus,deployment_id)
 
 randomPaths <- left_join(randomPaths,
                     statusObserved,by=c("mooseYear_id"="mooseYear_id",
@@ -95,9 +95,9 @@ rm(statusObserved)
 
 # Remove superfluous rows from observed paths
 # Rename columns to match random paths
-names(gpsCalvingSeason)
-gpsCalvingSeason <- gpsCalvingSeason %>% 
-  dplyr::select(mooseYear_id,RowID,Easting,Northing,calfAtHeel,
+names(calvingSeason)
+calvingSeason <- calvingSeason %>% 
+  dplyr::select(mooseYear_id,RowID,Easting,Northing,calfStatus,
                 response,deployment_id) %>% 
   rename(x = Easting, y = Northing, pointID = RowID) %>% 
   mutate(pathID = "observed",
@@ -106,7 +106,7 @@ gpsCalvingSeason <- gpsCalvingSeason %>%
                               sep="-"))
 
 # Join datasets
-allPaths <- rbind.fill(gpsCalvingSeason,randomPaths)
+allPaths <- rbind.fill(calvingSeason,randomPaths)
 
 #### Export data----
 # To verify results in GIS

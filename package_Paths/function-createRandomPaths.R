@@ -32,8 +32,8 @@ for (i in 1:length(ids)) {
   # Define variables
   idYearCalf <- ids[i]
   pathInfo_id <- subset(pathInfo, idYearStatus == idYearCalf)
-  idYearOnly <- paste(str_split(idYearCalf,pattern="\\.")[[1]][1],
-                               str_split(idYearCalf,pattern="\\.")[[1]][2],
+  idYearOnly <- paste(str_split(idYearCalf,pattern="_")[[1]][1],
+                               str_split(idYearCalf,pattern="_")[[1]][2],
                                sep=".")
   startPoints <- subset(randomPoints,mooseYear == idYearOnly)
   length <- pathInfo_id$length  
