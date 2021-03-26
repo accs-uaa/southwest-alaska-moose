@@ -8,14 +8,17 @@
 # ---------------------------------------------------------------------------
 
 # Set root directory
-drive = 'N:'
-root_folder = 'ACCS_Work/Projects/WildlifeEcology/Moose_SouthwestAlaska/Data/Data_Input'
+drive = 'C:'
+root_folder = 'Users/adroghini/Documents/GitHub/southwest-alaska-moose/data/covariates'
 
 # Define input folders
 path_folder = paste(drive,
                     root_folder,
                     'paths',
                     sep = '/')
+
+# geodb = "C:/Users/adroghini/Documents/GitHub/southwest-alaska-moose/gis/mooseHomeRanges.gdb"
+
 topography_folder = paste(drive,
                           root_folder,
                           'topography',
@@ -40,6 +43,7 @@ New_Packages <- Required_Packages[!(Required_Packages %in% installed.packages()[
 if (length(New_Packages) > 0) {
   install.packages(New_Packages)
 }
+
 # Import required libraries for geospatial processing: dplyr, raster, rgdal, sp, and stringr.
 library(dplyr)
 library(raster)
@@ -48,7 +52,9 @@ library(sp)
 library(stringr)
 
 # Define output csv file
-output_csv = paste(path_folder, 'allPaths_extracted.csv', sep = '/')
+
+# output_csv = paste(path_folder, 'allPaths_extracted.csv', sep = '/')
+output_csv = "C:/Users/adroghini/Documents/GitHub/southwest-alaska-moose/pipeline/paths/allPaths_extracted.csv"
 
 # Create a list of all predictor rasters
 predictors_topography = list.files(topography_folder, pattern = 'tif$', full.names = TRUE)
@@ -71,21 +77,19 @@ print(end[3])
 print('Extracting covariates...')
 start = proc.time()
 path_data = readOGR(dsn = path_shapefile)
+# path_data = readOGR(dsn=geodb,layer="allPaths_AKALB")
+
 path_extracted = data.frame(path_data@data, extract(predictor_stack, path_data))
 end = proc.time() - start
 print(end[3])
 
 # Convert field names to standard
 path_extracted = path_extracted %>%
-  rename(mooseYear_id = mooseYear_) %>%
-  rename(logitResponse = logitRespo) %>%
-  rename(fullPath_id = fullPath_i) %>%
-  rename(fullPoint_id = fullPoint_) %>%
   rename(forest_edge = southwestAlaska_ForestEdge) %>%
-  rename(tundra_edge = southwestAlaska_TussockTundraEdge) %>%
-  dplyr::select(-OBJECTID)
+  rename(tundra_edge = southwestAlaska_TussockTundraEdge)
     
 # Export data as a csv
 write.csv(path_extracted, file = output_csv, fileEncoding = 'UTF-8')
 print('Finished extracting to paths.')
 print('----------')
+rm(list=ls())

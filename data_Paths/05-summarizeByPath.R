@@ -1,6 +1,4 @@
-# Objective: Summarize point-level variables as the mean for each path. Exclude random paths that have more than 10 points in a lake. Randomly select 10 paths from the subset of the "lake-free" random paths for use in future modeling.
-
-# Note: Coordinates are now in projected geographic system NAD83 (2011) Alaska Albers EPSG:6393
+# Objective: Summarize point-level variables as the mean for each path. Exclude random paths that have more than 10 points in a lake. Randomly select 10 paths from the subset of the "lake-free" random paths for use in statistical modeling.
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
@@ -12,10 +10,10 @@ paths <- read_csv(file="pipeline/paths/allPaths_extracted.csv")
 #### Summarize data ----
 # Calculate mean for every variable of interest
 meanPaths <- paths %>% 
-  dplyr::select(mooseYear_id,fullPath_id,calfAtHeel,response,elevation:wetsed) %>% 
+  dplyr::select(mooseYear_id,fullPath_id,calfStatus,response,elevation:wetsed) %>% 
   group_by(mooseYear_id,fullPath_id) %>%
-  dplyr::summarise(across(calfAtHeel:wetsed, mean, .names = "{.col}_mean")) %>% 
-    rename(calfAtHeel = calfAtHeel_mean, response = response_mean) %>% 
+  dplyr::summarise(across(calfStatus:wetsed, mean, .names = "{.col}_mean")) %>% 
+    rename(calfStatus = calfStatus_mean, response = response_mean) %>% 
   ungroup()
 
 # Calculate total number (sum) of points that are in a lake
