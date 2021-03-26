@@ -12,6 +12,8 @@ library(MASS)
 library(circular)
 
 # Spatial packages
+library(sp)
+library(raster)
 library(rgdal)
 
 # Functions

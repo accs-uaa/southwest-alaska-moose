@@ -13,7 +13,7 @@ meanPaths <- paths %>%
   dplyr::select(mooseYear_id,fullPath_id,calfStatus,response,elevation:wetsed) %>% 
   group_by(mooseYear_id,fullPath_id) %>%
   dplyr::summarise(across(calfStatus:wetsed, mean, .names = "{.col}_mean")) %>% 
-    rename(calfStatus = calfStatus_mean, response = response_mean) %>% 
+    dplyr::rename(calfStatus = calfStatus_mean, response = response_mean) %>% 
   ungroup()
 
 # Calculate total number (sum) of points that are in a lake
@@ -34,11 +34,11 @@ meanPaths %>% dplyr::filter(response=="1") %>%
   dplyr::summarise(mean = mean(lake_sum),max=max(lake_sum))
 
 # Exclude random paths that have more than 10 points in a lake
-# Make an exception for path M30104.2019.calf0, which only has 9 random path iterations with <= 10 points in a lake
 meanPaths <- meanPaths %>% 
-  dplyr::filter( (mooseYear_id!="M30104.2019.calf0" & lake_sum <= 10) | 
-                   (mooseYear_id=="M30104.2019.calf0" & lake_sum <= 11)) %>% 
+  dplyr::filter(lake_sum <= 10) %>% 
   dplyr::select(-lake_sum)
+
+length(unique(meanPaths$mooseYear_id)) # Should be 82
 
 #### Select 10 random paths for every observed path ----
 randomPaths <- meanPaths %>% 

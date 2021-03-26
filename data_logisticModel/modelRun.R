@@ -18,12 +18,12 @@ paths <- paths %>%
 
 #### Attempt 1: Run two models ----
 
-#### Split data into calf-at-heel versus no calf
+#### Split data into calf versus no calf
 pathsWithCalf <- paths %>% 
-  filter(calfAtHeel==1)
+  filter(calfStatus==1)
 
 pathsWithoutCalf <- paths %>% 
-  filter(calfAtHeel==0)
+  filter(calfStatus==0)
 
 summary(pathsWithCalf)
 summary(pathsWithoutCalf)
@@ -35,23 +35,14 @@ summary(pathsWithoutCalf)
 # Paths with calves
 clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_mean +
          tundra_edge_mean + alnus_mean + betshr_mean + dectre_mean +
-         erivag_mean + picgla_mean + salshr_mean +
+         picgla_mean + salshr_mean +
          wetsed_mean + strata(mooseYear_id),
        data = pathsWithCalf)
 
 # Paths without calves
-# Full model does not converge - distribution of elevation, roughness, forest_edge, and erivag is problematic
-clogit(formula = response ~ tundra_edge_mean + alnus_mean + betshr_mean + 
-         dectre_mean + salshr_mean + picgla_mean +
-         wetsed_mean + strata(mooseYear_id),
-       data = pathsWithoutCalf)
-
-#### Attempt 2: Run single model ----
-# With calfAtHeel as grouping variable
-paths$calfAtHeel <- as.factor(paths$calfAtHeel)
-
+# erivag swamps everything -- i would omit from models
 clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_mean +
          tundra_edge_mean + alnus_mean + betshr_mean + dectre_mean +
-         erivag_mean + picgla_mean + salshr_mean +
+         picgla_mean + salshr_mean +
          wetsed_mean + strata(mooseYear_id),
-       data = paths)
+       data = pathsWithoutCalf)
