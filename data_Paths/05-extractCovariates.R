@@ -28,6 +28,10 @@ vegetation_folder = paste(drive,
                           root_folder,
                           'vegetation',
                           sep = '/')
+hydrography_folder = paste(drive,
+                           root_folder,
+                           'hydrography',
+                           sep = '/')
 
 # Define input site metadata
 path_shapefile = paste(path_folder,
@@ -54,9 +58,11 @@ output_csv = paste(path_folder, 'allPaths_extracted.csv', sep = '/')
 predictors_topography = list.files(topography_folder, pattern = 'tif$', full.names = TRUE)
 predictors_edge = list.files(edge_folder, pattern = 'tif$', full.names = TRUE)
 predictors_vegetation = list.files(vegetation_folder, pattern = 'tif$', full.names = TRUE)
+predictors_hydrography = list.files(hydrography_folder, pattern = 'tif$', full.names = TRUE)
 predictors_all = c(predictors_topography,
                    predictors_edge,
-                   predictors_vegetation)
+                   predictors_vegetation,
+                   predictors_hydrography)
 print(paste('Number of predictor rasters: ', length(predictors_all), sep = ''))
 print(predictors_all)
 
@@ -78,11 +84,11 @@ print(end[3])
 # Convert field names to standard
 path_extracted = path_extracted %>%
   rename(mooseYear_id = mooseYear_) %>%
-  rename(logitResponse = logitRespo) %>%
   rename(fullPath_id = fullPath_i) %>%
   rename(fullPoint_id = fullPoint_) %>%
   rename(forest_edge = southwestAlaska_ForestEdge) %>%
   rename(tundra_edge = southwestAlaska_TussockTundraEdge) %>%
+  mutate(datum = 3338) %>%
   dplyr::select(-OBJECTID)
     
 # Export data as a csv
