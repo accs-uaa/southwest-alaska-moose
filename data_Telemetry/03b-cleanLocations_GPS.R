@@ -2,13 +2,14 @@
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
-# Note: I have reran this script with the newest data download (Mar/Apr 2020)
+# Note: I have reran this script with the newest data download (Mar 2021)
 # The number of outliers detected in the Examine distance outliers section stayed the same, but I would have to rerun + relook at the ctmm plots to see if any new outliers came up since August 2019.
 # Since I'm still in the exploratory phase, I'm not sure if it's worth spending half a day combing through these plots again right now.
 
 # Load data and packages----
+rm(list=ls())
 source("package_TelemetryFormatting/init.R")
-
+source("package_TelemetryFormatting/function-plotOutliers.R")
 load("pipeline/telemetryData/gpsData/03a_cleanFixRate/cleanFixRate.Rdata")
 
 #### Calculate movement metrics----
@@ -28,20 +29,20 @@ summary(gpsClean$distanceMeters) # NAs should equal number of individuals
 
 #### Examine distance outliers----
 
-which(gpsClean$distanceMeters>8000) # 5 entries
+which(gpsClean$distanceMeters>8000) # 7 entries
 
-# Plot some of these to see if anything ~~fishy~~ is going on
-plotOutliers(gpsClean,18105,18140) # looks fine
-plotOutliers(gpsClean,66200,66500) # kind of weird but I think it's normal, she eventually goes back to her usual HR and who knows what goes on during calving
-plotOutliers(gpsClean,65200,67000)
-plotOutliers(gpsClean,66550,66650) # looks ok
-
-plotOutliers(gpsClean,90500,90650) # looks weird. two consecutive fixes had distances >9km: 90599 and 90600
-temp <- plotOutliers(gpsClean,90570,90610,output=TRUE)
+# Plot some of these to see if anything ~fishy~ is going on
+plotOutliers(gpsClean,35716,35726) # looks fine
+plotOutliers(gpsClean,46568,46588) # 
+plotOutliers(gpsClean,138008,138108)
+plotOutliers(gpsClean,138307,138407) 
+plotOutliers(gpsClean,183825,183925) # looks weird. two consecutive fixes had distances >9km: 183825 and 183826
+temp <- plotOutliers(gpsClean,183827,183835,output=TRUE)
+temp <- plotOutliers(gpsClean,183820,183835,output=TRUE)
 # I would lean towards deleting 90600 and interpolating
-which(row.names(temp)==90600)
-temp <- temp[-31,]
-plotOutliers(temp,1,40) # looks good now.
+which(row.names(temp)==183825)
+temp <- temp[-c(6,7),]
+plotOutliers(temp,1,14) # looks good now.
 
 rm(temp)
 
@@ -120,7 +121,7 @@ plotOutliers(subsetOutlier,1,nrow(subsetOutlier))
 
 rm(subsetOutlier,plotOutliers)
 
-#### Commit changes----
+#### Commit changes ----
 # Restart from move object since we will have to recalculate speed and distances
 
 gpsClean <- gpsClean %>%
@@ -135,6 +136,7 @@ gpsClean <- gpsClean %>%
 
 #### Save files----
 save(gpsClean,file="pipeline/telemetryData/gpsData/03b_cleanLocations/cleanLocations.Rdata")
+write_csv(gpsClean, "output/telemetryData/cleanedGPSdata.csv")
 
 # Clean workspace
 rm(list=ls())

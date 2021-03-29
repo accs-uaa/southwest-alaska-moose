@@ -6,6 +6,7 @@
 #### Load data and packages----
 rm(list = ls())
 source("package_TelemetryFormatting/init.R")
+source("package_TelemetryFormatting/function-subsetIDTimeLags.R")
 
 load("pipeline/telemetryData/gpsData/02_formatData/formattedData.Rdata")
 
@@ -17,8 +18,9 @@ load("pipeline/telemetryData/gpsData/02_formatData/formattedData.Rdata")
 
 gpsMove <- move(x=gpsData$Easting,y=gpsData$Northing,
                 time=gpsData$datetime,
-                data=gpsData,proj=CRS("+init=epsg:32604"),
+                data=gpsData,proj=CRS("+init=epsg:3338"),
                 animal=gpsData$deployment_id, sensor="gps")
+
 # Will throw a warning if there are any records with NA as coordinates
 
 # show(gpsMove)
@@ -36,6 +38,8 @@ n.locs(gpsMove) # no of locations per individuals
 #         b) improbable distances
 #         c) improbable locations
 
+# Plot coordinates
+# Takes a while to load
 plot(gpsData$Easting, gpsData$Northing,
      xlab="Easting", ylab="Northing")
 
@@ -79,13 +83,17 @@ rm(plotName,filePath,finalName,i,timeL)
 summary(timelagSummary)
 
 # investigating... M30102
-subsetID <- subsetTimeLags("M30102",1.95,2.05) # nothing, good to go.
+# Mortality on 4 June 2020
+# Drop everything after idx 9430
+subsetID <- subsetTimeLags("M30102",1.95,2.05) 
+View(subsetID[9400:9484,])
 
 # investigating... M30103
 subsetID <- subsetTimeLags("M30103",1.95,2.05)
 
 View(subsetID[1:10,]) # 1. Collar starts on April 5 2018, but fix rates do not become consistent until April 8 (barely any data from 6-7 Apr). Solution: Delete start (n=6).
 View(subsetID[970:985,]) # No data on 28 Jun 2018 but doesn't seemed to have moved much. Can we interpolate?
+View(subsetID[12774:12786,])
 
 # investigating... M30104
 subsetID <- subsetTimeLags("M30104",1.95,2.05)
@@ -152,11 +160,10 @@ subsetID <- subsetTimeLags("M30932",1.95,2.05)
 # Missing a couple of non-consecutive fixes- should be able to interpolate.
 
 # investigating... M30933
-subsetID <- subsetTimeLags("M30933",1.95,2.05)
-# Only missing one
+subsetID <- subsetTimeLags("M30933",1.95,2.05) # a few missed fixes
 
 # investigating... M30934
-subsetID <- subsetTimeLags("M30934",1.95,2.05) # good to go
+subsetID <- subsetTimeLags("M30934",1.95,2.05) # 1 missed fix
 
 # investigating... M30935
 subsetID <- subsetTimeLags("M30935",1.95,2.05)
@@ -175,6 +182,7 @@ subsetID <- subsetTimeLags("M30938",1.95,2.05)
 View(subsetID[6985:7010,])
 # Mortality not indicated in my version of the deployment datasheet but it looks like this individual died on 11/21/2019 7:00:28 AM (UTC)
 # Remove everything after Row ID 6991
+# Collar was not retrieved.
 
 
 # investigating... M30939
@@ -194,7 +202,8 @@ subsetID <- subsetTimeLags("M35173",1.95,2.05) # good to go
 rm(ids,timeLags,subsetID,subsetTimeLags)
 
 gpsClean <- gpsData %>%
-  filter(!(deployment_id == "M30103" & RowID <= 6 | deployment_id == "M30105" & RowID <= 5 |
+  filter(!(deployment_id == "M30102" & RowID > 9430 | 
+             deployment_id == "M30103" & RowID <= 6 | deployment_id == "M30105" & RowID <= 5 |
              deployment_id == "M30894" & RowID <= 8 | deployment_id == "M30926" & RowID <= 5 |
              deployment_id == "M30926" & RowID > 4823 | deployment_id == "M30928a" & RowID <= 4 |
              deployment_id == "M30928a" & RowID > 519 |
@@ -204,9 +213,10 @@ gpsClean <- gpsData %>%
              deployment_id == "M30940" & RowID <= 7))
 
 # Total number of rows deleted:
-nrow(gpsData)-nrow(gpsClean)
-(nrow(gpsData)-nrow(gpsClean))/nrow(gpsData)*100 # percentage
-# 1,597 records from M30938-- mortality
+nrow(gpsData)-nrow(gpsClean) #5,976
+# 5,629 records from M30938 (mortality & unretrieved collar)
+(nrow(gpsData)-nrow(gpsClean))/nrow(gpsData)*100 # 2.4% of data
+
 
 #### Check for duplicated timestamps----
 getDuplicatedTimestamps(x=as.factor(gpsClean$deployment_id),timestamps=gpsClean$datetime,sensorType="gps") # none

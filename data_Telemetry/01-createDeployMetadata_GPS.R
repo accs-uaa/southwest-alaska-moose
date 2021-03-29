@@ -1,14 +1,16 @@
 # Objective: Create a deployment data file that conforms to Movebank data standards. Identify and rename duplicate IDs (signifying collar redeployments) so that each animal ID is unique.
 
+# Note: Collars were deployed from 2017 to 2019. No new collars were deployed in 2020.
+
 # Movebank Attribute Dictionary: https://www.movebank.org/cms/movebank-content/movebank-attribute-dictionary
 
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
 #### Load libraries and data ----
-# dbo_CollarDeployment.xlsx is an export from Access DB table
+# dbo_CollarDeployment.xlsx is an exported table from Kassie's Access database
 source("package_TelemetryFormatting/init.R")
-deploy <- readxl::read_xlsx("D:/sw_ak_moose/data/dbo_CollarDeployment.xlsx")
+deploy <- readxl::read_xlsx("data/databaseFiles/dbo_CollarDeployment.xlsx")
 
 names(deploy)
 summary(deploy)
@@ -52,17 +54,18 @@ deploy <- deploy %>%
     n > 1 ~ paste0("M",tag_id,sapply(id, function(i) letters[i]),sep=""),
     TRUE ~ paste0("M",tag_id,sep=""))) %>%
   ungroup() %>%
-  select("animal_id","deployment_id","tag_id","sensor_type","deploy_on_timestamp",
+  dplyr::select("animal_id","deployment_id","tag_id","sensor_type","deploy_on_timestamp",
          "deploy_off_timestamp","tag_comments","ring_id",
          "animal_comments","deployment_end_type","deployment_end_comments") %>%
   add_column("animal_taxon" = "Alces alces", .before= 1) %>%
   arrange(deployment_id)
 
 #### QA/QC
-# Check that timestamps are correctly interpreted
+# Check that timestamps are correctly interpreted as POSIXct
 str(deploy)
 
-# Quick summary- how many collars do we have?
+# How many collars do we have?
+# 24 GPS collars, 55 VHF collars
 deploy %>%
   filter(sensor_type != "none") %>%
   group_by(sensor_type) %>%
@@ -73,7 +76,7 @@ unique(deploy$deployment_id)
 
 #### Export data ----
 # Export as .Rdata file
-save(deploy, file="pipleine/telemetryData/gpsData/01_createDeployMetadata/deployMetadata.Rdata")
+save(deploy, file="pipeline/telemetryData/gpsData/01_createDeployMetadata/deployMetadata.Rdata")
 
 # Export as .csv for Movebank upload
 # Movebank throws errors when certain columns are coded as NA
@@ -81,6 +84,7 @@ save(deploy, file="pipleine/telemetryData/gpsData/01_createDeployMetadata/deploy
 # Also get rid of visual only observations
 deployMovebank <- deploy %>%
   filter(sensor_type != "none")
+
 write.csv(deployMovebank,"output/telemetryData/deployMetadataMovebank.csv",
           row.names=FALSE,na="")
 

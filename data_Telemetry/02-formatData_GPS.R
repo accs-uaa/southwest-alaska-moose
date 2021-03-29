@@ -5,6 +5,7 @@
 
 #### Load packages and data----
 source("package_TelemetryFormatting/init.R")
+source("package_TelemetryFormatting/function-collarRedeploys.R")
 
 load("pipeline/telemetryData/gpsData/01_importData/gpsRaw.Rdata") # GPS telemetry data
 load("pipeline/telemetryData/gpsData/01_createDeployMetadata/deployMetadata.Rdata") # Deployment metadata file
@@ -26,22 +27,21 @@ gpsData <- gpsData %>%
   filter(longX < -152)
 
 #### Generate Eastings and Northings----
-# Even if present in original data, I would recalculate them since they seem to spotty. Have NAs even though lat/long are known.
-
 # This makes calculation of movement metrics easier
+# Even if present in original data, I would recalculate them since they seem spotty i.e., NAs even though lat/long are known.
+
 coordLatLong <- SpatialPoints(cbind(gpsData$longX, gpsData$latY), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 coordLatLong # check that signs are correct
 
-# Transform coordinates to UTM
-# Use EPSG=32604 for WGS84, UTM Zone 4N
-coordUTM <- spTransform(coordLatLong, CRS("+init=epsg:32604"))
+# Transform to projected coordinates
+# Use EPSG=3338 (Alaska Albers, NAD 83 datum)
+coordUTM <- spTransform(coordLatLong, CRS("+init=epsg:3338"))
 coordUTM <- as.data.frame(coordUTM)
 gpsData$Easting <- coordUTM[,1]
 gpsData$Northing <- coordUTM[,2]
 
 summary(gpsData)
 rm(coordUTM,coordLatLong)
-
 
 #### Correct redeploys----
 
@@ -59,14 +59,16 @@ gpsData$LMT_Date = as.POSIXct(strptime(gpsData$LMT_Date,
 gpsData$tagStatus <- tagRedeploy(gpsData$tag_id,redeployList$tag_id)
 
 # The next part is janky because my function writing skills are not great
-# The makeRedeploysUnique function only works on redeploys so I need to filter out redeploys & then merge back in with the rest of the data
+# The makeRedeploysUnique function only works on redeploys
+# Need to filter out redeploys & then merge back in with the rest of the data
 # The function also identifies "errors" e.g. when the collar is left active in the office between deployments. I need to filter these out manually before merging back
 gpsRedeployOnly <- subset(gpsData,tagStatus=="redeploy")
 gpsUniqueOnly <- subset(gpsData,tagStatus!="redeploy")
 
 gpsRedeployOnly$deployment_id <- apply(X=gpsRedeployOnly,MARGIN=1,FUN=makeRedeploysUnique,redeployData=redeployList)
 
-# Filter out errors and rbind with non-redeploys
+# Filter out errors
+# Combine redeploy with non-redeploys
 gpsRedeployOnly <- subset(gpsRedeployOnly,deployment_id!="error")
 gpsUniqueOnly$deployment_id <- paste0("M",gpsUniqueOnly$tag_id,sep="")
 
@@ -79,7 +81,6 @@ length(unique(gpsData$deployment_id)) # Should be 24
 # Clean workspace
 rm(gpsRedeployOnly,gpsUniqueOnly,redeployList,makeRedeploysUnique,tagRedeploy)
 
-
 #### Additional formatting----
 
 # Create unique row number
@@ -88,7 +89,10 @@ rm(gpsRedeployOnly,gpsUniqueOnly,redeployList,makeRedeploysUnique,tagRedeploy)
 
 # Drop unnecessary columns
 
+# Create unique mooseYear ID
+
 gpsData <- gpsData %>%
+  mutate(mooseYear = paste(deployment_id,year(gpsData$LMT_Date),sep=".")) %>% 
 group_by(deployment_id) %>%
   arrange(datetime) %>%
   dplyr::mutate(RowID = row_number(datetime)) %>%
