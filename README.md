@@ -3,9 +3,10 @@ Scripts for processing GPS telemetry data and analyzing properties of movement a
 
 This project is a collaboration between the Alaska Center for Conservation Science and the Alaska Department of Fish and Game.
 
-*Author*: Amanda Droghini, Alaska Center for Conservation Science, University of Alaska Anchorage
+*Authors*:
+Amanda Droghini, Timm W. Nawrocki, Alaska Center for Conservation Science, University of Alaska Anchorage
 
-*Last updated*: 2020-06-07
+*Last updated*: 2021-04-29
 
 # Prerequisites
 1. ArcGIS Pro 2.5.2+
@@ -29,13 +30,18 @@ This project is a collaboration between the Alaska Center for Conservation Scien
 
 ## Authors
 * **Amanda Droghini** - *Alaska Center for Conservation Science, University of Alaska Anchorage*
+* **Timm W. Nawrocki** - *Alaska Center for Conservation Science, University of Alaska Anchorage*
 
 ## Usage Requirements
 Use of the scripts included in this repository should be cited as follows:
 
-Droghini, A. 2020. Southwest Alaska moose. Git Repository. Available: https://github.com/accs-uaa/southwest-alaska-moose
+Droghini, A., and T.W. Nawrocki. 2021. Space Use and Movement Patterns of Moose in Southwest Alaska. Git Repository. Available: https://github.com/accs-uaa/southwest-alaska-moose
 
 ## Citations
 Evans J.S., J. Oakleaf, S. A. Cushman. 2014. An ArcGIS Toolbox for Surface Gradient and Geomorphometric Modeling, version 2.0-0. Available: https://github.com/jeffreyevans/GradientMetrics
 
 Nawrocki, T.W. 2020. Beringian Vegetation. Git Repository. Available: https://github.com/accs-uaa/beringian-vegetation
+
+### License
+
+This project is provided under the GNU General Public License v3.0. It is free to use and modify in part or in whole.
