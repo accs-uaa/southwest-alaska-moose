@@ -8,34 +8,23 @@
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
-#### Load packages and data ----
-source("package_TelemetryFormatting/init.R")
-load("pipeline/telemetryData/gpsData/03b_cleanLocations/cleanLocations.Rdata")
-load(file="pipeline/telemetryData/parturienceData.Rdata")
+rm(list = ls())
+
+# Define Git directory ----
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting/"
+
+#### Load packages and functions ----
+source(paste0(git_dir,"init.R"))
+
+#### data -----
+load(file=paste0(pipeline_dir,"03b_cleanLocations/","cleanLocations.Rdata"))
+load(file=paste0(pipeline_dir,"01-formatParturienceVariable/","parturienceData.Rdata"))
 
 #### Format telemetry data ----
 
 # Restrict to calving season
-# Create date column to merge with parturience data, which does not have a timestamp
 gpsClean <- gpsClean %>%
-  mutate(AKDT_Date = as.Date(datetime)) %>%
-  dplyr::select(-c(UTC_Date,UTC_Time)) %>%
-  dplyr::filter( (month(AKDT_Date) == 5 & 
-                    day(AKDT_Date) >= 10) | 
-                   (year(AKDT_Date) == 2018 
-                    & month(AKDT_Date) == 6 
-                    & day(AKDT_Date) <= 4) |
-                   (year(AKDT_Date) == 2019 
-                    & month(AKDT_Date) == 6 
-                    & day(AKDT_Date) <= 6))
-
-# Check that the filtering worked
-summary(gpsClean$AKDT_Date)
-unique(gpsClean$AKDT_Date)
-
-# Check if there are any mortality signals- would no longer actively selecting for habitat at that point...
-unique(gpsClean$mortalityStatus) # only normal or NA
-gpsClean <- dplyr::select(.data=gpsClean,-mortalityStatus)
+  mutate(AKDT_Date = as.Date(datetime))
 
 #### Add boolean parturience variable ----
 
@@ -44,11 +33,23 @@ calfData <- calfData %>%
   dplyr::select(-sensor_type)
 
 # Join datasets
-calvingSeason <- left_join(gpsClean,calfData,by = c("deployment_id", "AKDT_Date"))
+gpsClean <- left_join(gpsClean,calfData,by = c("deployment_id", "AKDT_Date"))
 
-# Drop observations that do not have a calf status associated with it (either coded as -999 or NA)
-calvingSeason <- calvingSeason %>% 
-  dplyr::filter(!(is.na(calfStatus) | calfStatus == -999))
+# Drop observations that do not have a calf status associated with it
+calvingSeason <- gpsClean %>% 
+  dplyr::filter(!is.na(calfStatus))
+
+# Quick plot check - use one season as test
+calvingSeason %>% 
+  dplyr::filter(year(AKDT_Date) == 2018) %>% 
+  ggplot(aes(AKDT_Date,calfStatus)) + 
+  geom_point() +
+  scale_x_date(date_breaks = ("4 days")) +
+  theme_bw()
+
+# Check if there are any mortality signals- would no longer actively selecting for habitat at that point...
+unique(calvingSeason$mortalityStatus) # only normal or NA
+calvingSeason <- dplyr::select(.data=calvingSeason,-mortalityStatus)
 
 #### Encode moose-Year-calf ID ----
 # Recode deployment_id to include year and calf status
@@ -66,26 +67,42 @@ calvingSeason <- calvingSeason %>%
 
 #### Explore sample size ----
 
-# Calculate number of relocations per moose-year
-n <- plyr::count(calvingSeason, "mooseYear_id")
+# 24 unique female individuals
+length(unique(calvingSeason$deployment_id)) 
 
-summary(n$freq)
-
-# Minimum number of points per path is 4. How many have less than 30 relocations?
-nrow(n %>% dplyr::filter(freq < 30)) # 13 moose-year-calf paths
-
-# All of our variables will be normalized to # of samples.
-
-# How many moose? How many moose-Years?
-length(unique(calvingSeason$deployment_id)) # 24 unique female individuals
-length(unique(calvingSeason$mooseYear_id)) # 82 moose-year-calf paths
-
-# How many moose-years with calves for at least part of the season?
+# Sampling unit is the path = moose x year x calf 
+# Total of 80 paths
+# 49 paths with calves, 31 without
+length(unique(calvingSeason$mooseYear_id)) 
 nrow(calvingSeason %>% filter(calfStatus=="1") %>% 
-       distinct(mooseYear_id)) # 49 paths with calves
+       distinct(mooseYear_id))
+
+# Number of locations per path ranges from 12 to 324
+# 12 paths have fewer than 30 relocations
+n <- plyr::count(calvingSeason, "mooseYear_id")
+nrow(n) 
+summary(n$freq)
+nrow(n %>% dplyr::filter(freq < 30)) 
+
+# Determine average time between relocations across paths
+# Median & mean time interval: 2 hours
+# Minimum: 1.96 h
+# Maximum: 4 h
+gpsMove <- move::move(x=calvingSeason$Easting,y=calvingSeason$Northing,
+                      time=calvingSeason$datetime,
+                      data=calvingSeason,proj=CRS("+init=epsg:3338"),
+                      animal=calvingSeason$mooseYear_id, sensor="gps")
+
+timeLag <- unlist(lapply(timeLag(gpsMove, units='hours'),  c, NA))
+summary(timeLag)
 
 #### Export data ----
 # Save as .Rdata file
-save(calvingSeason, file="pipeline/telemetryData/gpsData/04-formatForCalvingSeason/gpsCalvingSeason.Rdata")
-write_csv(calvingSeason, "output/telemetryData/cleanedGPSCalvingSeason.csv")
+save(calvingSeason, file=paste0(pipeline_dir,
+                                "04-formatForCalvingSeason/",
+                                "gpsCalvingSeason.Rdata"))
+
+write_csv(calvingSeason, file=paste0(output_dir,
+                                     "animalData/",
+                                     "cleanedGPSCalvingSeason.csv"))
 rm(list = ls())
