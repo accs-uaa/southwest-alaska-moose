@@ -11,7 +11,7 @@ import os
 
 # Set root directory
 drive = 'C:\\'
-root_folder = 'Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose'
+root_folder = 'Work\\GMU_17_Moose'
 
 # Set overwrite option
 arcpy.env.overwriteOutput = True

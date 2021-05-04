@@ -10,6 +10,7 @@ git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_Paths/"
 
 #### Load packages and functions ----
 source(paste0(git_dir,"init.R"))
+source(paste0(git_dir,"function-createRandomPaths.R"))
 
 #### Load data ----
 load(file=paste0(pipeline_dir,"04-formatForCalvingSeason/","gpsCalvingSeason.Rdata"))
@@ -19,8 +20,6 @@ load(file=paste0(pipeline_dir,"01-generateDistributions/",
 # Random starting points
 randomPoints <- readOGR(dsn=geoDB,layer="randomStartPts")
 randomPoints <- randomPoints@data
-
-rm(geodb)
 
 #### Create summary data ----
 
@@ -39,9 +38,15 @@ observedPaths <- calvingSeason %>%
          status = calfStatus)
 
 #### Run function ----
+print('Generating', numPaths, 'random paths per sample...')
+start = proc.time()
+
 pathsList <- createRandomPaths(randomPoints = randomPoints, 
                                pathInfo = observedPaths,
                                dist = dist)
+
+end = proc.time() - start
+print(end[3])
 
 #### Convert list to dataframe ----
 pathsDf <- lapply(pathsList, function(x) do.call(rbind, x))
@@ -113,10 +118,11 @@ calvingSeason <- calvingSeason %>%
 # Join datasets
 allPaths <- rbind.fill(calvingSeason,randomPaths)
 
-#### Export data----
+#### Export data ----
 # To verify results in GIS
 # Projection is EPSG = 3338, NAD 83 Alaska Albers
-write_csv(allPaths,file="pipeline/paths/allPaths.csv")
+write_csv(allPaths,file=paste0(pipeline_dir, "04-createRandomPaths/",
+                               "allPaths.csv"))
 
 # Clear workspace
 rm(list=ls())

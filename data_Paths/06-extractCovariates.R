@@ -49,16 +49,13 @@ vegetation_folder = paste(drive,
                           covar_folder,
                           'vegetation',
                           sep = '/')
+
 hydrography_folder = paste(drive,
                            root_folder,
+                           covar_folder,
                            'hydrography',
                            sep = '/')
 
-hydrography_folder = paste(drive,
-                          root_folder,
-                          covar_folder,
-                          'hydrography',
-                          sep = '/')
 
 # Define output csv file
 output_csv = paste(drive,
@@ -77,7 +74,7 @@ predictors_all = c(predictors_topography,
                    predictors_vegetation,
                    predictors_hydrography)
 print(paste('Number of predictor rasters: ', length(predictors_all), sep = ''))
-print(predictors_all)
+print(predictors_all) # Should be 13
 
 # Generate a stack of all covariate rasters
 print('Creating raster stack...')

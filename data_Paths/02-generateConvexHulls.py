@@ -8,7 +8,7 @@ import os
 
 # Set root directory
 drive = 'C:\\'
-root_folder = 'Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose'
+root_folder = 'Work\\GMU_17_Moose'
 
 # Set overwrite option
 arcpy.env.overwriteOutput = True
@@ -19,7 +19,7 @@ arcpy.env.workspace = geodatabase # Needs to be set for Minimum Bounding Geometr
 
 # Define inputs
 input_projection = 3338
-input_csv = os.path.join(drive, root_folder, 'output\\telemetryData\\cleanedGPSdata.csv')
+input_csv = os.path.join(drive, root_folder, 'data_03_Output\\animalData\\cleanedGPSdata.csv')
 x_coords = "Easting"
 y_coords = "Northing"
 unique_id = "mooseYear"
