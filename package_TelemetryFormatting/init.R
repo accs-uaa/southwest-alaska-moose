@@ -1,3 +1,8 @@
+# Define file directories
+input_dir <- "C:/Work/GMU_17_Moose/data_01_Input/"
+pipeline_dir <- "C:/Work/GMU_17_Moose/data_02_Pipeline/"
+output_dir <- "C:/Work/GMU_17_Moose/data_03_Output/"
+
 # Data management packages
 library(plyr)
 library(tidyverse)
@@ -18,8 +23,3 @@ library(tlocoh)
 # Statistics packages
 library(MASS)
 library(circular)
-
-# Functions
-source("package_TelemetryFormatting/function-collarRedeploys.R")
-source("package_TelemetryFormatting/function-subsetIDTimeLags.R")
-source("package_TelemetryFormatting/function-plotOutliers.R")

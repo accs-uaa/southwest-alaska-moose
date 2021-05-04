@@ -3,12 +3,17 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
-#### Load data and packages----
 rm(list = ls())
-source("package_TelemetryFormatting/init.R")
-source("package_TelemetryFormatting/function-subsetIDTimeLags.R")
 
-load("pipeline/telemetryData/gpsData/02_formatData/formattedData.Rdata")
+# Define Git directory ----
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting/"
+
+#### Load packages and functions ----
+init_file <- paste0(git_dir,"init.R")
+source(init_file)
+source(paste0(git_dir,"function-subsetIDTimeLags.R"))
+
+load(paste0(pipeline_dir,"02_formatData/","gpsData_formatted.Rdata"))
 
 #### Calculate time lags----
 # According to Vectronic manual (https://vectronic-aerospace.com/wp-content/uploads/2016/04/Manual_GPS-Plus-Collar-Manager-V3.11.3.pdf), Lat/Long is in WGS84.
@@ -222,7 +227,8 @@ nrow(gpsData)-nrow(gpsClean) #5,976
 getDuplicatedTimestamps(x=as.factor(gpsClean$deployment_id),timestamps=gpsClean$datetime,sensorType="gps") # none
 
 # Export cleaned data
-save(gpsClean,file="pipeline/telemetryData/gpsData/03a_cleanFixRate/cleanFixRate.Rdata")
+save(gpsClean,
+     file=paste0(pipeline_dir,"03a_cleanFixRate/","cleanFixRate.Rdata"))
 
 # Clean workspace
 rm(list=ls())

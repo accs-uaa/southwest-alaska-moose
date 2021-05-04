@@ -2,13 +2,19 @@
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
-# Load packages and data----
-source("package_TelemetryFormatting/init.R")
+# Define Git directory ----
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting/"
 
-flightData <- read_excel("data/calvingSeason/dbo_FlightIndex.xlsx",sheet="dbo_FlightIndex")
-vhfData <- read_excel("data/calvingSeason/dbo_MooseRadioTelemetry.xlsx",sheet="dbo_MooseRadioTelemetry")
+#### Load packages ----
+source(paste0(git_dir,"init.R"))
 
-load("pipeline/telemetryData/gpsData/01_createDeployMetadata/deployMetadata.Rdata")
+#### Load data ----
+flightData <- read_excel(paste0(input_dir,"from_access_database/","dbo_FlightIndex.xlsx"),
+                         sheet="dbo_FlightIndex")
+vhfData <- read_excel(paste0(input_dir,"from_access_database/",
+                             "dbo_MooseRadioTelemetry.xlsx"),sheet="dbo_MooseRadioTelemetry")
+
+load(paste0(pipeline_dir,"01_createDeployMetadata/","deployMetadata.Rdata"))
 
 # Format data ----
 
@@ -55,9 +61,9 @@ vhfData$AKDT_Date <- as.Date(vhfData$AKDT_Date,format="%Y-%m-%d")
 
 #### Export data----
 # As.Rdata file rather than .csv because I don't want to deal with reclassifying my dates
-save(vhfData,file="pipeline/telemetryData/vhfData.Rdata")
+save(vhfData,file=paste0(pipeline_dir,"02_formatData/","vhfData_formatted.Rdata"))
 
-write_csv(vhfData,"output/telemetryData/cleanedVHFdata.csv")
+write_csv(vhfData,file=paste0(output_dir,"animalData/","cleanedVHFdata.csv"))
 
 # Clean workspace
 rm(list=ls())

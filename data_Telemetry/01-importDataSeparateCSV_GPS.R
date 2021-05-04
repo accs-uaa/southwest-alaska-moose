@@ -5,11 +5,18 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
-# Load packages and data files----
+# Define Git directory ----
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting"
+
+#### Load packages ----
+init_file <- paste(git_dir,"init.R",sep="/")
+source(init_file)
+
+# Load data files ----
 # Use pattern="GPS" to drop Mortality files
 # Should have 22 files
-source("package_TelemetryFormatting/init.R")
-dataFiles <- list.files(file.path('data'),full.names = TRUE,pattern="GPS")
+filePath <- paste0(input_dir,"/telemetry")
+dataFiles <- list.files(file.path(filePath),full.names = TRUE,pattern="GPS")
 
 # Read in each file and combine into single dataframe
 # "No" column is not unique across all individuals, but is unique within each individual
@@ -56,7 +63,7 @@ gpsData <- gpsData %>%
          Latitude....,Longitude....,Mort..Status,DOP,FixType,Easting,Northing)
 
 ####Export----
-save(gpsData, file="pipeline/telemetryData/gpsData/01_importData/gpsRaw.Rdata")
+save(gpsData, file=paste0(pipeline_dir,"01_importData/gpsRaw.Rdata"))
 
 # Clean workspace
 rm(list=ls())

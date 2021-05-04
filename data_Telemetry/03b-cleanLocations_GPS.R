@@ -6,11 +6,17 @@
 # The number of outliers detected in the Examine distance outliers section stayed the same, but I would have to rerun + relook at the ctmm plots to see if any new outliers came up since August 2019.
 # Since I'm still in the exploratory phase, I'm not sure if it's worth spending half a day combing through these plots again right now.
 
-# Load data and packages----
-rm(list=ls())
-source("package_TelemetryFormatting/init.R")
-source("package_TelemetryFormatting/function-plotOutliers.R")
-load("pipeline/telemetryData/gpsData/03a_cleanFixRate/cleanFixRate.Rdata")
+rm(list = ls())
+
+# Define Git directory ----
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting/"
+
+#### Load packages and functions ----
+source(paste0(git_dir,"init.R"))
+source(paste0(git_dir,"function-plotOutliers.R"))
+
+#### Load data ----
+load(paste0(pipeline_dir, "03a_cleanFixRate/","cleanFixRate.Rdata"))
 
 #### Calculate movement metrics----
 
@@ -131,12 +137,12 @@ gpsClean <- gpsClean %>%
              deployment_id == "M30929" & RowID == 2351 |
              deployment_id=="M30930" & RowID == 3616 |
              deployment_id=="M30935" & RowID == 1856)) %>%
-  dplyr::select(-distanceMeters)
+  dplyr::select(-distanceMeters,-speedKmh)
 # Deleted 6 rows
 
 #### Save files----
-save(gpsClean,file="pipeline/telemetryData/gpsData/03b_cleanLocations/cleanLocations.Rdata")
-write_csv(gpsClean, "output/telemetryData/cleanedGPSdata.csv")
+save(gpsClean,file=paste0(pipeline_dir,"03b_cleanLocations/","cleanLocations.Rdata"))
+write_csv(gpsClean, file=paste0(output_dir, "animalData/","cleanedGPSdata.csv"))
 
 # Clean workspace
 rm(list=ls())

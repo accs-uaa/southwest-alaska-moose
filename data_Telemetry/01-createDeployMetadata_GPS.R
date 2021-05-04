@@ -7,10 +7,16 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
-#### Load libraries and data ----
+# Define Git directory ----
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting/"
+
+#### Load packages ----
+init_file <- paste0(git_dir,"init.R")
+source(init_file)
+
+#### Load data ----
 # dbo_CollarDeployment.xlsx is an exported table from Kassie's Access database
-source("package_TelemetryFormatting/init.R")
-deploy <- readxl::read_xlsx("data/databaseFiles/dbo_CollarDeployment.xlsx")
+deploy <- readxl::read_xlsx(paste0(input_dir,"from_access_database/dbo_CollarDeployment.xlsx"))
 
 names(deploy)
 summary(deploy)
@@ -75,8 +81,9 @@ deploy %>%
 unique(deploy$deployment_id)
 
 #### Export data ----
+
 # Export as .Rdata file
-save(deploy, file="pipeline/telemetryData/gpsData/01_createDeployMetadata/deployMetadata.Rdata")
+save(deploy, file="data_02_pipeline/01_createDeployMetadata/deployMetadata.Rdata")
 
 # Export as .csv for Movebank upload
 # Movebank throws errors when certain columns are coded as NA
@@ -85,8 +92,7 @@ save(deploy, file="pipeline/telemetryData/gpsData/01_createDeployMetadata/deploy
 deployMovebank <- deploy %>%
   filter(sensor_type != "none")
 
-write.csv(deployMovebank,"output/telemetryData/deployMetadataMovebank.csv",
-          row.names=FALSE,na="")
+write_csv(deployMovebank,paste0("output_dir,deployMetadataMovebank.csv"), na="")
 
 # Clean up workspace
-rm(deploy,deployMovebank)
+rm(list=ls())

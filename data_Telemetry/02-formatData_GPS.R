@@ -3,12 +3,16 @@
 # Author: A. Droghini (adroghini@alaska.edu)
 #         Alaska Center for Conservation Science
 
-#### Load packages and data----
-source("package_TelemetryFormatting/init.R")
-source("package_TelemetryFormatting/function-collarRedeploys.R")
+# Define Git directory ----
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting/"
 
-load("pipeline/telemetryData/gpsData/01_importData/gpsRaw.Rdata") # GPS telemetry data
-load("pipeline/telemetryData/gpsData/01_createDeployMetadata/deployMetadata.Rdata") # Deployment metadata file
+#### Load packages and functions ----
+source(paste0(git_dir,"init.R"))
+source(paste0(git_dir,"function-collarRedeploys.R"))
+
+#### Load data----
+load(paste0(pipeline_dir,"01_importData/gpsRaw.Rdata")) # GPS telemetry data
+load(paste0(pipeline_dir,"01_createDeployMetadata/deployMetadata.Rdata")) # Deployment metadata file
 
 
 #### Format GPS data----
@@ -110,7 +114,9 @@ gpsData <- left_join(gpsData,deploy,by="deployment_id")
 # Coerce back to dataframe (needed for move package)
 gpsData <- as.data.frame(gpsData)
 
+##### Export data ----
 # Save as .Rdata file
-save(gpsData, file="pipeline/telemetryData/gpsData/02_formatData/formattedData.Rdata")
+save(gpsData, file=paste0(pipeline_dir,"02_formatData/gpsData_formatted.Rdata"))
 
+#### Clean workspace ----
 rm(list = ls())

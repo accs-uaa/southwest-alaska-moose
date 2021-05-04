@@ -4,23 +4,30 @@
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
-# Load packages and data----
-source("package_TelemetryFormatting/init.R")
+# Define directories ----
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting"
+input_dir <- "C:/Work/GMU_17_Moose/data_01_input/"
+pipeline_dir <- "C:/Work/GMU_17_Moose/data_02_pipeline/"
+output_dir <- "C:/Work/GMU_17_Moose/data_03_output/"
 
-calf2018 <- read_excel("data/calvingSeason/Parturience2018-2020.xlsx",
-                       sheet="2018_noLeadingZeroes",range="A1:AG67")
-calf2019 <- read_excel("data/calvingSeason/Parturience2018-2020.xlsx",
-                       sheet="2019_noLeadingZeroes",range="A1:AH84")
-calf2020 <- read_excel("data/calvingSeason/Parturience2018-2020.xlsx",
-                       sheet="2020_noLeadingZeroes",range="A1:U84")
+# Load packages ----
+init_file <- paste(git_dir,"init.R",sep="/")
+source(init_file)
 
-load(file="pipeline/telemetryData/gpsData/01_createDeployMetadata/deployMetadata.Rdata")
+# Load data ----
+
+data_file <- paste0(input_dir,"calving_status/calvingStatus_compiled_2018-2020.xlsx")
+calf2018 <- read_excel(data_file, sheet="2018",range="A1:Z67")
+calf2019 <- read_excel(data_file, sheet="2019",range="A1:AB84")
+calf2020 <- read_excel(data_file, sheet="2020",range="A1:W84")
+
+load(file=paste0(pipeline_dir,"01_createDeployMetadata/deployMetadata.Rdata"))
 
 # Format data ----
 
 # Convert date columns to long form
 calf2018 <- calf2018 %>%
-  pivot_longer(cols="11 May 2018":"23 June 2018",names_to="AKDT_Date",
+  pivot_longer(cols="11 May 2018":"4 June 2018",names_to="AKDT_Date",
                values_to="calfStatus")
 
 calf2019 <- calf2019 %>%
@@ -28,7 +35,7 @@ calf2019 <- calf2019 %>%
                values_to="calfStatus")
 
 calf2020 <- calf2020 %>%
-  pivot_longer(cols=2:21,names_to="AKDT_Date",
+  pivot_longer(cols="10 May 2020":"31 May 2020",names_to="AKDT_Date",
                values_to="calfStatus")
 
 # Combine all years into single data frame
@@ -37,31 +44,27 @@ calfData <- plyr::rbind.fill(calf2018,calf2019,calf2020)
 # Add collar ID using moose ID as a key
 calfData <- left_join(calfData,deploy,by=c("Moose_ID"="animal_id"))
 
-# Create boolean calf status
-# Recode observations that are coded as "3" (cow pregnant, calf not yet born) to "-999"
-# -999 can also mean unobserved, but in the context of this analysis those two situations are functionally the same
-# Recode "2" (twins) as 1. Not differentiating between twins and single calves in this analysis.
-# Drop "M1719H03" - this is a bull moose that isn't included in our deployment dataset
+#Format date
+# Drop animals that aren't included in our deployment dataset (1 bull moose)
+# Drop values coded as -999
+# Drop animals with no sensor_type (i.e., observations only, no VHF or GPS collars)
 calfData <- calfData %>%
-  mutate(calfStatus = case_when(calfStatus == 3 ~ -999,
-                                calfStatus == 2 ~ 1,
-                               calfStatus <= 1 ~ calfStatus),
-         AKDT_Date = as.Date(calfData$AKDT_Date,format="%e %B %Y")) %>%
-  dplyr::filter(Moose_ID != "M1719H03") %>% 
+  mutate(AKDT_Date = as.Date(calfData$AKDT_Date,format="%e %B %Y")) %>%
+  dplyr::filter(!(is.na(deployment_id) | calfStatus == -999 | sensor_type=="none")) %>% 
   dplyr::select(deployment_id,sensor_type,AKDT_Date,calfStatus)
 
 ### QA/QC ----
 unique(calfData$calfStatus)
-unique(calfData$deployment_id)
+unique(calfData$sensor_type)
 length(unique(subset(calfData,sensor_type=="GPS")$deployment_id)) # 24
 length(unique(subset(calfData,sensor_type=="VHF")$deployment_id)) #55
 
 #### Export data ----
 # As .csv file for data sharing
-write_csv(calfData, "output/telemetryData/parturienceData.csv")
+write_csv(calfData, paste0(output_dir,"animalData/","calfStatus_2018-2020.csv"))
 
 # As.Rdata file to use in subsequent scripts because I don't want to deal with reclassifying my dates
-save(calfData,file="pipeline/telemetryData/parturienceData.Rdata")
+save(calfData,file=paste0(pipeline_dir,"01-formatParturienceVariable/","parturienceData.Rdata"))
 
 # Clean workspace
 rm(list=ls())
