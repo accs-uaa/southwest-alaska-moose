@@ -20,10 +20,6 @@ gammaDistribution <-
                                densfun = "gamma",
                                lower = c(0, 0))
     
-    randomDist <- rgamma(n = 1e+06,
-                         shape = fitGamma$estimate[[1]],
-                         rate = fitGamma$estimate[[2]])
-    
-    return(randomDist)
+    return(fitGamma)
     
   }

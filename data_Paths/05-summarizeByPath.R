@@ -30,6 +30,7 @@ rm(lakeSum,paths)
 # Use observed paths to determine threshold of exclusion
 
 # For every path, calculate total number of points that are in a lake
+# Maximum number of points in lake for observed paths is 9. Tolerance threshold: 10 or fewer.
 meanPaths %>% dplyr::filter(response=="1") %>% 
   dplyr::summarise(mean = mean(lake_sum),max=max(lake_sum))
 

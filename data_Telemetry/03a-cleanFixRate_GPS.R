@@ -9,8 +9,7 @@ rm(list = ls())
 git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting/"
 
 #### Load packages and functions ----
-init_file <- paste0(git_dir,"init.R")
-source(init_file)
+source(paste0(git_dir,"init.R"))
 source(paste0(git_dir,"function-subsetIDTimeLags.R"))
 
 load(paste0(pipeline_dir,"02_formatData/","gpsData_formatted.Rdata"))

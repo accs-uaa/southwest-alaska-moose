@@ -3,16 +3,21 @@
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
-#### Load packages and data----
-rm(list=ls())
-source("package_Paths/init.R")
+rm(list = ls())
 
-load(file="pipeline/telemetryData/gpsData/04-formatForCalvingSeason/gpsCalvingSeason.Rdata")
-load(file="pipeline/paths/theoreticalDistributions.Rdata")
+# Define Git directory ----
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_Paths/"
+
+#### Load packages and functions ----
+source(paste0(git_dir,"init.R"))
+
+#### Load data ----
+load(file=paste0(pipeline_dir,"04-formatForCalvingSeason/","gpsCalvingSeason.Rdata"))
+load(file=paste0(pipeline_dir,"01-generateDistributions/",
+                 "theoreticalDistributions.Rdata"))
 
 # Random starting points
-geodb <- "C:/Users/adroghini/Documents/GitHub/southwest-alaska-moose/gis/mooseHomeRanges.gdb"
-randomPoints <- readOGR(dsn=geodb,layer="randomStartPts")
+randomPoints <- readOGR(dsn=geoDB,layer="randomStartPts")
 randomPoints <- randomPoints@data
 
 rm(geodb)

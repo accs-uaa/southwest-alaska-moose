@@ -4,15 +4,11 @@
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
-# Define directories ----
-git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting"
-input_dir <- "C:/Work/GMU_17_Moose/data_01_input/"
-pipeline_dir <- "C:/Work/GMU_17_Moose/data_02_pipeline/"
-output_dir <- "C:/Work/GMU_17_Moose/data_03_output/"
+# Define Git directory ----
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting/"
 
-# Load packages ----
-init_file <- paste(git_dir,"init.R",sep="/")
-source(init_file)
+#### Load packages ----
+source(paste0(git_dir,"init.R"))
 
 # Load data ----
 

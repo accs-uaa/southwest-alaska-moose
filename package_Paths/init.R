@@ -1,3 +1,9 @@
+# Define file directories
+input_dir <- "C:/Work/GMU_17_Moose/data_01_Input/"
+pipeline_dir <- "C:/Work/GMU_17_Moose/data_02_Pipeline/"
+output_dir <- "C:/Work/GMU_17_Moose/data_03_Output/"
+geoDB <- "C:/Work/GMU_17_Moose/gis/mooseHomeRanges.gdb"
+
 # Data management packages
 library(plyr)
 library(tidyverse)
@@ -15,9 +21,3 @@ library(circular)
 library(sp)
 library(raster)
 library(rgdal)
-
-# Functions
-source("package_Paths/function-createRandomPaths.R")
-source("package_Paths/function-exploreMoveMetrics.R")
-source("package_Paths/function-gammaDistribution.R")
-source("package_Paths/function-vonMisesDistribution.R")

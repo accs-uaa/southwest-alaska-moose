@@ -6,11 +6,10 @@
 #         Alaska Center for Conservation Science
 
 # Define Git directory ----
-git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting"
+git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting/"
 
 #### Load packages ----
-init_file <- paste(git_dir,"init.R",sep="/")
-source(init_file)
+source(paste0(git_dir,"init.R"))
 
 # Load data files ----
 # Use pattern="GPS" to drop Mortality files

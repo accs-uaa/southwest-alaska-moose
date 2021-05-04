@@ -11,8 +11,7 @@
 git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_TelemetryFormatting/"
 
 #### Load packages ----
-init_file <- paste0(git_dir,"init.R")
-source(init_file)
+source(paste0(git_dir,"init.R"))
 
 #### Load data ----
 # dbo_CollarDeployment.xlsx is an exported table from Kassie's Access database
