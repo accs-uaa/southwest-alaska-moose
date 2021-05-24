@@ -14,7 +14,7 @@ root_folder = 'Work\\GMU_17_Moose'
 arcpy.env.overwriteOutput = True
 
 # Define working geodatabase
-geodatabase = os.path.join(drive, root_folder, 'gis\\mooseHomeRanges.gdb')
+geodatabase = os.path.join(drive, root_folder, 'GIS\\mooseHomeRanges.gdb')
 arcpy.env.workspace = geodatabase # Needs to be set for Minimum Bounding Geometry code to run
 
 # Define inputs
