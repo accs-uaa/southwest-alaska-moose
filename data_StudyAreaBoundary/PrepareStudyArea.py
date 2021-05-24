@@ -1,13 +1,11 @@
-# Purpose: Create smoothed study area boundary that includes:
-# Bristol Bay Lowlands + Ahklun Mountains Ecoregions (Nowacki et al. 2003)
-# Togiak Refuge
-# ADF&G Game Management Unit (GMU) 17
+# Purpose: Create smoothed study area boundary that includes Bristol Bay Lowlands + Ahklun Mountains (Alaska Unified Ecoregions from Nowacki et al. 2003), Togiak National Wildlife Refuge, and ADF&G Game Management Unit (GMU) 17.
 
 # This script:
 # 1) Selects the Bristol Bay Lowlands and the Ahklun Mountains from the Alaska Unified Ecoregions shapefile. The output is a polygon that contains only those 2 ecoregions.
-# 2) Smooths the GMU 17 polygon and creates a 10 km buffer around it in order to smooth the boundaries between the GMU 17 shapefile and the ecoregions.
-# 3) Merges the 2 ecoregions polygon + buffered GMU 17 + unedited polygon of Togiak National Wildlife Refuge.
-# 4) Transform into raster
+# 2) Smooths and buffers GMU 17 polygon to minimize gaps and jagged joins.
+# 3) Smooths and buffers Togiak NWR polygon.
+# 4) Merge all 3 polygons, transform to raster, and clip to mainland Alaska only.
+# 5) Convert back to polygon for cartographic purposes.
 
 # Author: A. Droghini (adroghini@alaska.edu)
 # Alaska Center for Conservation Science
@@ -64,8 +62,8 @@ temp_buffer_all = "StudyArea_Buffer"
 output_GMU17 = "StudyArea_GMU17_Smooth_Buffer"
 output_Togiak = "StudyArea_Togiak_Smooth_Buffer"
 output_final_polygon = "StudyArea_Boundary"
-output_raster = "StudyArea_Raster"
 
+output_raster = os.path.join(drive, root_folder, 'GIS\\StudyArea_Raster.tif')
 
 # Define the initial projection
 initial_projection = arcpy.SpatialReference(input_projection)
@@ -97,9 +95,8 @@ arcpy.cartography.SmoothPolygon(temp_buffer_all, output_final_polygon, "PAEK", t
 # Removes anything that is off the mainland i.e., water, islands
 # For use in modelling and analyses
 mask_raster = ExtractByMask(snap_raster, output_final_polygon)
-mask_raster.save(output_raster)
 
-arcpy.management.BuildPyramids(output_raster)
+arcpy.management.CopyRaster(mask_raster, output_raster, pixel_type="1_BIT")
 
 # Convert back to polygon for cartographic purposes
 # Overwrite output_final_polygon
