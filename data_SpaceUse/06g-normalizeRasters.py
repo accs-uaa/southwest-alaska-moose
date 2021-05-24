@@ -16,45 +16,41 @@ import os
 # Check out ArcGIS Spatial Analyst extension license
 arcpy.CheckOutExtension("Spatial")
 
-# Set root directory
+# Set directories
 drive = 'C:\\'
-root_folder = 'Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose'
-raster_folder = os.path.join(drive, root_folder, 'pipeline\\spaceUse\\06f_exportAsRasters')
+root_folder = 'Work\\GMU_17_Moose\\'
+raster_folder = os.path.join(drive, root_folder, 'data_02_pipeline\\06f_exportAsRasters')
+exportPath = os.path.join(drive,root_folder, 'GIS\\normalizedRasters\\')
 
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 
 # Define working geodatabase
-geodatabase = os.path.join(drive, root_folder, 'gis\\mooseHomeRanges.gdb')
+geodatabase = os.path.join(drive, root_folder, 'GIS\\mooseHomeRanges.gdb')
 
-# Create inputs
+# Define inputs
 cell_size = 40
 input_projection = 32604
 output_projection = 3338
 geographic_transformation = 'WGS_1984_(ITRF00)_To_NAD_1983'
 conversion_factor = 100
 
-# Define the initial projection
+# Define initial and target projections
 initial_projection = arcpy.SpatialReference(input_projection)
-# Define the target projection
 composite_projection = arcpy.SpatialReference(output_projection)
 
 # Set snap raster
-snap_raster = os.path.join(drive, root_folder, 'gis\\northAmericanBeringia_ModelArea.tif')
+snap_raster = os.path.join(drive, root_folder, 'GIS\\northAmericanBeringia_ModelArea.tif')
 arcpy.env.snapRaster = snap_raster
-
-# List all raster files to be processed, including file path
-filePath = "C:\\Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose\\pipeline\\spaceUse\\06f_exportAsRasters"
 
 # From @giltay: https://stackoverflow.com/questions/120656/directory-tree-listing-in-python
 def listdir_fullpath(d):
     return [os.path.join(d, f) for f in os.listdir(d)]
 
-files = listdir_fullpath(filePath)
+files = listdir_fullpath(raster_folder)
 
 # Define export directory and names of final rasters
-fileNames = os.listdir(filePath)
-exportPath = "C:\\Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose\\gis\\normalizedRasters\\"
+fileNames = os.listdir(raster_folder)
 
 # Run function
 for i in range(len(files)):
