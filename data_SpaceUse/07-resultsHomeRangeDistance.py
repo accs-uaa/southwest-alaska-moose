@@ -13,20 +13,25 @@ import time
 # Check out ArcGIS Spatial Analyst extension license
 arcpy.CheckOutExtension("Spatial")
 
-# Set root directory
+# Set directories
 drive = 'C:\\'
-root_folder = 'Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose\\gis'
-raster_folder = os.path.join(drive, root_folder, 'normalizedRasters')
+root_folder = 'ACCS_Work\\GMU_17_Moose\\'
+gis_folder = os.path.join(drive,root_folder,'GIS')
+raster_folder = os.path.join(gis_folder, 'normalizedRasters')
 
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 
-# Define working geodatabase
-geodatabase = os.path.join(drive, root_folder, 'mooseHomeRanges.gdb')
+# Define working geodatabase and set workspace
+geodatabase = os.path.join(gis_folder, 'Moose_SouthwestAlaska.gdb')
+arcpy.env.workspace = geodatabase
 
 # Set snap raster
-snap_raster = os.path.join(drive, root_folder, 'northAmericanBeringia_ModelArea.tif')
+snap_raster = os.path.join(gis_folder, 'northAmericanBeringia_ModelArea.tif')
 arcpy.env.snapRaster = snap_raster
+
+# Define export folder
+exportPath = os.path.join(drive, root_folder, 'Data_02_Pipeline\\07_resultsHomeRangeDistance')
 
 ########### List files and set local variables ###########
 
@@ -44,9 +49,6 @@ for raster in files:
 reclassField = "Value"
 remap = RemapRange([[1,100,1]])
 outPolygon = os.path.join(geodatabase, "outPolygon")
-
-# Set workspace environment
-arcpy.env.workspace = geodatabase
 
 # Start timing
 iteration_start = time.time()
@@ -131,5 +133,4 @@ for object in filesToDelete:
     arcpy.Delete_management(object)
 
 # Export distance results as .csv table
-exportPath = "C:\\Users\\adroghini\\Documents\\GitHub\\southwest-alaska-moose\\pipeline\\07_resultsHomeRangeDistance"
 arcpy.TableToTable_conversion(in_rows=allCentroids, out_path=exportPath, out_name="allDistances.csv")

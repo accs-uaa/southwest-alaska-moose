@@ -20,17 +20,18 @@ arcpy.CheckOutExtension("Spatial")
 
 # Define root directory
 drive = 'C:\\'
-root_folder = 'Work\\GMU_17_Moose'
+root_folder = 'ACCS_Work\\GMU_17_Moose'
 
-# Set workspace
-geodatabase = os.path.join(drive, root_folder, 'GIS\\mooseHomeRanges.gdb')
+# Define GIS folder and set workspace
+data_folder = os.path.join(drive, root_folder, 'GIS')
+geodatabase = os.path.join(data_folder, 'Moose_SouthwestAlaska.gdb')
 arcpy.env.workspace = geodatabase
 
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 
 # Set snap raster and cell size
-snap_raster = os.path.join(drive, root_folder, 'GIS\\northAmericanBeringia_ModelArea.tif')
+snap_raster = os.path.join(data_folder, 'northAmericanBeringia_ModelArea.tif')
 arcpy.env.snapRaster = snap_raster
 arcpy.env.cellSize = snap_raster
 
@@ -63,7 +64,7 @@ output_GMU17 = "StudyArea_GMU17_Smooth_Buffer"
 output_Togiak = "StudyArea_Togiak_Smooth_Buffer"
 output_final_polygon = "StudyArea_Boundary"
 
-output_raster = os.path.join(drive, root_folder, 'GIS\\StudyArea_Raster.tif')
+output_raster = os.path.join(drive, root_folder, 'Data_01_Input\\southwestAlaska_StudyArea.tif')
 
 # Define the initial projection
 initial_projection = arcpy.SpatialReference(input_projection)

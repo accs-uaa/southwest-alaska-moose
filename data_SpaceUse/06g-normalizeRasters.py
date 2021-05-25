@@ -18,15 +18,15 @@ arcpy.CheckOutExtension("Spatial")
 
 # Set directories
 drive = 'C:\\'
-root_folder = 'Work\\GMU_17_Moose\\'
-raster_folder = os.path.join(drive, root_folder, 'data_02_pipeline\\06f_exportAsRasters')
-exportPath = os.path.join(drive,root_folder, 'GIS\\normalizedRasters\\')
+root_folder = 'ACCS_Work\\GMU_17_Moose\\'
+gis_folder = os.path.join(drive, root_folder, 'GIS')
+raster_folder = os.path.join(drive, root_folder, 'Data_02_Pipeline\\06f_exportAsRasters')
 
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 
 # Define working geodatabase
-geodatabase = os.path.join(drive, root_folder, 'GIS\\mooseHomeRanges.gdb')
+geodatabase = os.path.join(gis_folder, 'Moose_SouthwestAlaska.gdb')
 
 # Define inputs
 cell_size = 40
@@ -40,19 +40,23 @@ initial_projection = arcpy.SpatialReference(input_projection)
 composite_projection = arcpy.SpatialReference(output_projection)
 
 # Set snap raster
-snap_raster = os.path.join(drive, root_folder, 'GIS\\northAmericanBeringia_ModelArea.tif')
+snap_raster = os.path.join(gis_folder, 'northAmericanBeringia_ModelArea.tif')
 arcpy.env.snapRaster = snap_raster
 
+# Define export directory and file names
+# List all files in directory
 # From @giltay: https://stackoverflow.com/questions/120656/directory-tree-listing-in-python
+fileNames = os.listdir(raster_folder)
+output_path = os.path.join(gis_folder, 'normalizedRasters')
+
 def listdir_fullpath(d):
     return [os.path.join(d, f) for f in os.listdir(d)]
 
 files = listdir_fullpath(raster_folder)
 
-# Define export directory and names of final rasters
-fileNames = os.listdir(raster_folder)
-
 # Run function
+# Normalize each raster so that values are between 0 and 1
+# Code from Evans et al. (2014)
 for i in range(len(files)):
     r = files[i]
     maxVal = arcpy.GetRasterProperties_management(r, "MAXIMUM")
@@ -74,7 +78,7 @@ for i in range(len(files)):
     null_raster = SetNull(integer_raster, integer_raster, "VALUE = 0")
 
     # Define output raster name
-    final_raster = os.path.join(exportPath,fileNames[i])
+    final_raster = os.path.join(output_path,fileNames[i])
 
     # Reproject raster
     arcpy.ProjectRaster_management(null_raster,

@@ -13,16 +13,16 @@ import os
 
 # Set root directory
 drive = 'C:\\'
-root_folder = 'Work\\GMU_17_Moose'
+root_folder = 'ACCS_Work\\GMU_17_Moose'
 
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 
 # Define geodatabase
-geodatabase = os.path.join(drive, root_folder, 'gis\\mooseHomeRanges.gdb')
+geodatabase = os.path.join(drive, root_folder, 'GIS\\Moose_SouthwestAlaska.gdb')
 
 # Define input data
-input_csv = os.path.join(drive, root_folder, 'data_02_Pipeline\\04-createRandomPaths\\allPaths.csv')
+input_csv = os.path.join(drive, root_folder, 'Data_02_Pipeline\\04-createRandomPaths\\allPaths.csv')
 input_projection = 3338
 x_coords = "x"
 y_coords = "y"

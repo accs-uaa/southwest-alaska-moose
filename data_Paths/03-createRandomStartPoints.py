@@ -11,13 +11,13 @@ import os
 
 # Set root directory
 drive = 'C:\\'
-root_folder = 'Work\\GMU_17_Moose'
+root_folder = 'ACCS_Work\\GMU_17_Moose'
 
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 
 # Set workspace
-geodatabase = os.path.join(drive, root_folder, 'gis\\mooseHomeRanges.gdb')
+geodatabase = os.path.join(drive, root_folder, 'GIS\\Moose_SouthwestAlaska.gdb')
 arcpy.env.workspace = geodatabase
 
 # Define inputs
