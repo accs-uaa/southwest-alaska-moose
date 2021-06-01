@@ -2,15 +2,16 @@
 # ---------------------------------------------------------------------------
 # Prepare vegetation cover covariates
 # Author: Timm Nawrocki
-# Last Updated: 2020-12-01
+# Last Updated: 2021-05-26
 # Usage: Must be executed in an ArcGIS Pro Python 3.6 installation.
 # Description: "Prepare vegetation cover covariates" extracts foliar cover maps to the study area boundary to ensure matching extents.
 # ---------------------------------------------------------------------------
 
 # Import packages
+import arcpy
 import os
 from package_GeospatialProcessing import arcpy_geoprocessing
-from package_GeospatialProcessing import extract_to_boundary
+from package_GeospatialProcessing import create_minimum_raster
 
 # Set root directory
 drive = 'N:/'
@@ -18,48 +19,55 @@ root_folder = 'ACCS_Work'
 
 # Define data folder
 data_folder = os.path.join(drive, root_folder, 'Projects/WildlifeEcology/Moose_SouthwestAlaska/Data')
-vegetation_folder = os.path.join(drive, root_folder, 'Projects/VegetationEcology/AKVEG_QuantitativeMap/Data')
+vegetation_folder = os.path.join(drive, root_folder,
+                                 'Projects/VegetationEcology/AKVEG_QuantitativeMap/Data/Data_Output/rasters_final/round_20210402')
 work_geodatabase = os.path.join(data_folder, 'Moose_SouthwestAlaska.gdb')
 
-# Define input datasets
+# Define study area
 study_area = os.path.join(data_folder, 'Data_Input/southwestAlaska_StudyArea.tif')
-raster_alnus = os.path.join(vegetation_folder, 'Data_Output/rasters_final/northAmericanBeringia_alnus.tif')
-raster_betshr = os.path.join(vegetation_folder, 'Data_Output/rasters_final/northAmericanBeringia_betshr.tif')
-raster_dectre = os.path.join(vegetation_folder, 'Data_Output/rasters_final/northAmericanBeringia_dectre.tif')
-raster_erivag = os.path.join(vegetation_folder, 'Data_Output/rasters_final/northAmericanBeringia_erivag.tif')
-raster_salshr = os.path.join(vegetation_folder, 'Data_Output/rasters_final/northAmericanBeringia_salshr.tif')
-raster_wetsed = os.path.join(vegetation_folder, 'Data_Output/rasters_final/northAmericanBeringia_wetsed.tif')
 
-# Define output raster
-cover_alnus = os.path.join(data_folder, 'Data_Input/vegetation/alnus.tif')
-cover_betshr = os.path.join(data_folder, 'Data_Input/vegetation/betshr.tif')
-cover_dectre = os.path.join(data_folder, 'Data_Input/vegetation/dectre.tif')
-cover_erivag = os.path.join(data_folder, 'Data_Input/vegetation/erivag.tif')
-cover_salshr = os.path.join(data_folder, 'Data_Input/vegetation/salshr.tif')
-cover_wetsed = os.path.join(data_folder, 'Data_Input/vegetation/wetsed.tif')
+# Define major grids
+grids_major = ['C5', 'C6',
+               'D5', 'D6',
+               'E5']
 
-# Group inputs and outputs
-rasters_initial = [raster_alnus, raster_betshr, raster_dectre, raster_erivag, raster_salshr, raster_wetsed]
-rasters_output = [cover_alnus, cover_betshr, cover_dectre, cover_erivag, cover_salshr, cover_wetsed]
+# Define map groups
+map_groups = ['alnus', 'betshr', 'dectre', 'dryas', 'empnig', 'erivag', 'picgla', 'picmar', 'rhoshr', 'salshr', 'sphagn', 'vaculi',
+              'vacvit', 'wetsed']
 
 # Iterate through all inputs to create all outputs
-n = 0
-while n < len(rasters_initial):
-    # Define input and output arrays
-    extract_inputs = [rasters_initial[n], study_area, study_area]
-    extract_outputs = [rasters_output[n]]
+for group in map_groups:
+    # Define input rasters
+    raster_C5 = os.path.join(vegetation_folder, group, 'NorthAmericanBeringia_' + group + '_C5.tif')
+    raster_C6 = os.path.join(vegetation_folder, group, 'NorthAmericanBeringia_' + group + '_C6.tif')
+    raster_D5 = os.path.join(vegetation_folder, group, 'NorthAmericanBeringia_' + group + '_D5.tif')
+    raster_D6 = os.path.join(vegetation_folder, group, 'NorthAmericanBeringia_' + group + '_D6.tif')
+    raster_E5 = os.path.join(vegetation_folder, group, 'NorthAmericanBeringia_' + group + '_E5.tif')
 
-    # Create key word arguments
-    extract_kwargs = {'no_data_replace': 0,
-                      'work_geodatabase': work_geodatabase,
-                      'input_array': extract_inputs,
-                      'output_array': extract_outputs
-                      }
+    # Define output raster
+    raster_output = os.path.join(data_folder, 'Data_Input/vegetation', group + '.tif')
 
-    # Calculate minimum inverse density-weighted distance
-    print(f'Extracting {os.path.split(rasters_initial[n])[1]} to boundary...')
-    arcpy_geoprocessing(extract_to_boundary, **extract_kwargs)
-    print('----------')
+    # If output raster does not already exist, create output raster
+    if arcpy.Exists(raster_output) == 0:
+        # Define input and output arrays
+        combine_inputs = [study_area, raster_C5, raster_C6, raster_D5, raster_D6, raster_E5]
+        combine_outputs = [raster_output]
 
-    # Increase iterator
-    n += 1
+        # Create key word arguments
+        combine_kwargs = {'cell_size': 10,
+                          'output_projection': 3338,
+                          'value_type': '16_BIT_SIGNED',
+                          'no_data': '-32768',
+                          'work_geodatabase': work_geodatabase,
+                          'input_array': combine_inputs,
+                          'output_array': combine_outputs
+                          }
+
+        # Combine raster tiles
+        print(f'Combining raster tiles for {group}...')
+        arcpy_geoprocessing(create_minimum_raster, **combine_kwargs)
+        print('----------')
+
+    else:
+        print(f'Output raster for {group} already exists.')
+        print('----------')

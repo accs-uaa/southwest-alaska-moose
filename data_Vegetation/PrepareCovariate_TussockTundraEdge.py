@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Prepare tussock tundra edge covariate
 # Author: Timm Nawrocki
-# Last Updated: 2020-11-03
+# Last Updated: 2021-05-27
 # Usage: Must be executed in an ArcGIS Pro Python 3.6 installation.
 # Description: "Prepare tussock tundra covariate" calculates the minimum inverse density-weighted distance from the cover of Eriophorum vaginatum.
 # ---------------------------------------------------------------------------
@@ -24,7 +24,7 @@ work_geodatabase = os.path.join(data_folder, 'Moose_SouthwestAlaska.gdb')
 
 # Define input rasters
 study_area = os.path.join(data_folder, 'Data_Input/southwestAlaska_StudyArea.tif')
-raster_erivag = os.path.join(data_folder, 'Data_Input/vegetation/northAmericanBeringia_erivag.tif')
+raster_erivag = os.path.join(data_folder, 'Data_Input/vegetation/erivag.tif')
 
 # Define output raster
 tussock_edge = os.path.join(data_folder, 'Data_Input/edge_distance/southwestAlaska_TussockTundraEdge.tif')
@@ -32,8 +32,8 @@ tussock_edge = os.path.join(data_folder, 'Data_Input/edge_distance/southwestAlas
 # Define a maximum foliar cover value from the Eriophorum vaginatum cover raster
 maximum_cover = int(arcpy.GetRasterProperties_management(raster_erivag, 'MAXIMUM').getOutput(0))
 
-# Iterate through all possible cover values greater than or equal to 5% and calculate the inverse density-weighted distance for that value
-n = 5
+# Iterate through all possible cover values greater than or equal to 10% and calculate the inverse density-weighted distance for that value
+n = 10
 edge_rasters = []
 while n <= maximum_cover:
     # Define output raster
@@ -83,7 +83,7 @@ minimum_outputs = [tussock_edge]
 minimum_kwargs = {'cell_size': 10,
                   'output_projection': 3338,
                   'value_type': '32_BIT_SIGNED',
-                  'no_data': '-999',
+                  'no_data': '-32768',
                   'work_geodatabase': work_geodatabase,
                   'input_array': minimum_inputs,
                   'output_array': minimum_outputs
