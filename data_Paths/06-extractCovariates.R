@@ -12,7 +12,7 @@ rm(list = ls())
 # Define Git directory ----
 git_dir <- "C:/ACCS_Work/GitHub/southwest-alaska-moose/package_Paths/"
 
-#### Load packages and functions ----
+#### Load packages and data ----
 source(paste0(git_dir,"init.R"))
 
 # Define input folders for vegetation covariates
@@ -36,7 +36,7 @@ hydrography_folder = paste(input_dir,
 # Define output csv file
 output_csv = paste(pipeline_dir,
                    '06-extractCovariates',
-                   'allPaths_extracted.csv',
+                   'allPoints_extractedCovariates',
                    sep = '/')
 
 # Create a list of all predictor rasters
@@ -61,8 +61,7 @@ print(end[3])
 # Read path data and extract covariates
 print('Extracting covariates...')
 start = proc.time()
-path_data = readOGR(dsn=geodatabase,layer="allPaths_AKALB")
-
+path_data = readOGR(dsn=geoDB,layer="allPaths_AKALB")
 path_extracted = data.frame(path_data@data, raster::extract(predictor_stack, path_data))
 end = proc.time() - start
 print(end[3])
