@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Prepare lake covariate
 # Author: Timm Nawrocki
-# Last Updated: 2020-12-22
+# Last Updated: 2021-06-01
 # Usage: Must be executed in an ArcGIS Pro Python 3.6 installation.
 # Description: "Prepare lake covariate" extracts lake and pond features from the NHD, converts the features to rasters, and extracts to the study area.
 # ---------------------------------------------------------------------------
