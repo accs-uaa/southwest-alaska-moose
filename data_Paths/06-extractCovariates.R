@@ -7,61 +7,36 @@
 # Description: "Extract Covariates to Points" extracts data from rasters to points representing actual and random moose paths.
 # ---------------------------------------------------------------------------
 
-# Load packages
+rm(list = ls())
 
-# Set root directory
-drive = 'C:'
-root_folder = 'Users/adroghini/Documents/GitHub/southwest-alaska-moose'
-covar_folder = 'data/covariates'
-output_folder = 'pipeline/paths'
-gis_folder = 'gis'
-package_folder = 'package_Paths'
+# Define Git directory ----
+git_dir <- "C:/ACCS_Work/GitHub/southwest-alaska-moose/package_Paths/"
 
-# Load packages
-path_package = paste(drive,
-                     root_folder,
-                     package_folder,
-                     'init.R',
-                     sep = '/')
+#### Load packages and data ----
+source(paste0(git_dir,"init.R"))
 
-source(path_package)
-
-# Define input folders
-geodatabase = paste(drive,
-                    root_folder,
-                    gis_folder,
-                    'mooseHomeRanges.gdb',
-                    sep = '/')
-
-topography_folder = paste(drive,
-                          root_folder,
-                          covar_folder,
+# Define input folders for vegetation covariates
+topography_folder = paste(input_dir,
                           'topography',
                           sep = '/')
-edge_folder = paste(drive,
-                    root_folder,
-                    covar_folder,
+
+edge_folder = paste(input_dir,
                     'edge_distance',
                     sep = '/')
 
-vegetation_folder = paste(drive,
-                          root_folder,
-                          covar_folder,
+vegetation_folder = paste(input_dir,
                           'vegetation',
                           sep = '/')
 
-hydrography_folder = paste(drive,
-                           root_folder,
-                           covar_folder,
+hydrography_folder = paste(input_dir,
                            'hydrography',
                            sep = '/')
 
 
 # Define output csv file
-output_csv = paste(drive,
-                   root_folder,
-                   output_folder,
-                   'allPaths_extracted.csv',
+output_csv = paste(pipeline_dir,
+                   '06-extractCovariates',
+                   'allPoints_extractedCovariates',
                    sep = '/')
 
 # Create a list of all predictor rasters
@@ -74,7 +49,7 @@ predictors_all = c(predictors_topography,
                    predictors_vegetation,
                    predictors_hydrography)
 print(paste('Number of predictor rasters: ', length(predictors_all), sep = ''))
-print(predictors_all) # Should be 13
+print(predictors_all) # Should be 19
 
 # Generate a stack of all covariate rasters
 print('Creating raster stack...')
@@ -86,8 +61,7 @@ print(end[3])
 # Read path data and extract covariates
 print('Extracting covariates...')
 start = proc.time()
-path_data = readOGR(dsn=geodatabase,layer="allPaths_AKALB")
-
+path_data = readOGR(dsn=geoDB,layer="allPaths_AKALB")
 path_extracted = data.frame(path_data@data, raster::extract(predictor_stack, path_data))
 end = proc.time() - start
 print(end[3])

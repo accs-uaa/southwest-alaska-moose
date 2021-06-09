@@ -6,7 +6,7 @@
 rm(list = ls())
 
 # Define Git directory ----
-git_dir <- "C:/Work/GitHub/southwest-alaska-moose/package_Paths/"
+git_dir <- "C:/ACCS_Work/GitHub/southwest-alaska-moose/package_Paths/"
 
 #### Load packages and functions ----
 source(paste0(git_dir,"init.R"))
