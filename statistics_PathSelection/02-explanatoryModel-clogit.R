@@ -19,10 +19,16 @@ git_dir <- "C:/ACCS_Work/GitHub/southwest-alaska-moose/package_Statistics/"
 #### Load packages and data ----
 source(paste0(git_dir,"init.R"))
 
-paths <- read_csv(file=paste(pipeline_dir,
-                             "07-summarizeByPath",
-                             "allPaths_meanCovariates_forModelRun.csv",
+calf <- read_csv(file=paste(pipeline_dir,
+                             "01-dataPrepForAnalyses",
+                             "allPaths_calf.csv",
                              sep="/"))
+
+no_calf <- read_csv(file=paste(pipeline_dir,
+                             "01-dataPrepForAnalyses",
+                             "allPaths_no_calf.csv",
+                             sep="/"))
+
 
 ##### Define output csv files
 output_calf <- paste(output_dir,
@@ -32,29 +38,6 @@ output_calf <- paste(output_dir,
 output_no_calf <- paste(output_dir,
                                   "pathSelectionFunction",
                                   "clogit_results_no_calf.csv", sep="/")
-
-#### Format data ----
-
-### Standardize variables
-# Convert edge variables so that all covariates are on a similar scale
-# Original distance and topographic units are in meters
-# Express distance units as 1/10 of a km instead
-
-paths <- paths %>% 
-  mutate(forest_edge_mean = forest_edge_mean/100,
-         tundra_edge_mean = tundra_edge_mean/100)
-
-### Split data into calf versus no calf
-# Run separate models for 1) cows w/ calves; 2) cows w/o calves. Cannot include calving status as a splitting variable in a conditional framework, since calving status is the same for both observed and random paths.
-
-calf <- paths %>% 
-  filter(calfStatus==1)
-
-no_calf <- paths %>% 
-  filter(calfStatus==0)
-
-summary(calf)
-summary(no_calf)
 
 #### Run models ----
 
