@@ -17,7 +17,7 @@ paths <- read_csv(paste(pipeline_dir, "06-extractCovariates",
 # Define output csv file ----
 output_csv = paste(pipeline_dir,
                    "07-summarizeByPath",
-                   "allPaths_meanCovariates_forModelRun.csv", sep="/")
+                   "allPaths_meanCovariates.csv", sep="/")
 
 #### Summarize data ----
 # Calculate mean for every variable of interest
