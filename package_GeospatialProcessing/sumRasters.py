@@ -43,8 +43,10 @@ def sum_rasters(**kwargs):
     # Use two thirds of cores on processes that can be split.
     arcpy.env.parallelProcessingFactor = "66%"
 
-    # Set snap raster
+    # Set snap raster, extent, and cell size
     arcpy.env.snapRaster = study_area
+    arcpy.env.extent = Raster(study_area).extent
+    arcpy.env.cellSize = "MINOF"
 
     # Start timing function
     iteration_start = time.time()
@@ -101,7 +103,7 @@ def sum_rasters(**kwargs):
 
     # Determine raster type and no data value
     no_data_value = Raster(raster_one).noDataValue
-    type_number = arcpy.GetRasterProperties_management(raster_one, 'VALUETYPE').getOutput(0)
+    type_number = arcpy.management.GetRasterProperties(raster_one, 'VALUETYPE').getOutput(0)
     value_types = ['1_BIT',
                    '2_BIT',
                    '4_BIT',
@@ -118,7 +120,7 @@ def sum_rasters(**kwargs):
     # Start timing function
     iteration_start = time.time()
     # Save the summed raster to disk
-    arcpy.CopyRaster_management(extract_raster,
+    arcpy.management.CopyRaster(extract_raster,
                                 output_raster,
                                 '',
                                 '',
@@ -132,6 +134,7 @@ def sum_rasters(**kwargs):
                                 'NONE',
                                 'CURRENT_SLICE',
                                 'NO_TRANSPOSE')
+    arcpy.management.BuildRasterAttributeTable(output_raster, "Overwrite")
     # End timing
     iteration_end = time.time()
     iteration_elapsed = int(iteration_end - iteration_start)

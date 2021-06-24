@@ -112,7 +112,7 @@ def extract_features_to_raster(**kwargs):
     iteration_start = time.time()
     # Convert values to one and null to zero
     nonull_raster = Con(IsNull(Raster(intermediate_raster)), 0, 1)
-    arcpy.CopyRaster_management(nonull_raster,
+    arcpy.management.CopyRaster(nonull_raster,
                                 output_raster,
                                 '',
                                 '0',

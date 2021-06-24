@@ -54,9 +54,10 @@ def create_minimum_raster(**kwargs):
     # Use two thirds of cores on processes that can be split.
     arcpy.env.parallelProcessingFactor = "66%"
 
-    # Set snap raster and extent
+    # Set snap raster, extent, and cell size
     arcpy.env.snapRaster = study_area
     arcpy.env.extent = Raster(study_area).extent
+    arcpy.env.cellSize = "MINOF"
 
     # Define the target projection
     composite_projection = arcpy.SpatialReference(output_projection)
@@ -65,7 +66,7 @@ def create_minimum_raster(**kwargs):
     iteration_start = time.time()
     print(f'\tMerging {len(input_rasters)} rasters using minimum value...')
     # Mosaic input rasters to new raster using minimum
-    arcpy.MosaicToNewRaster_management(input_rasters,
+    arcpy.management.MosaicToNewRaster(input_rasters,
                                        output_location,
                                        mosaic_name,
                                        composite_projection,
@@ -102,7 +103,7 @@ def create_minimum_raster(**kwargs):
     iteration_start = time.time()
     print(f'\tSaving extracted raster to disk...')
     # Save the summed raster to disk
-    arcpy.CopyRaster_management(extract_raster,
+    arcpy.management.CopyRaster(extract_raster,
                                 output_raster,
                                 '',
                                 '',
@@ -118,7 +119,7 @@ def create_minimum_raster(**kwargs):
                                 'NO_TRANSPOSE')
     # Delete mosaic raster if it exists
     if arcpy.Exists(mosaic_raster) == 1:
-        arcpy.Delete_management(mosaic_raster)
+        arcpy.management.Delete(mosaic_raster)
     # End timing
     iteration_end = time.time()
     iteration_elapsed = int(iteration_end - iteration_start)

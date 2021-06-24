@@ -24,7 +24,6 @@ def project_xy_table(**kwargs):
 
     # Import packages
     import arcpy
-    from arcpy.sa import ExtractByMask
     import datetime
     import os
     import time
@@ -56,7 +55,7 @@ def project_xy_table(**kwargs):
     iteration_start = time.time()
     print(f'\tConverting point table to feature class...')
     # Convert xy coordinates to table feature class
-    arcpy.XYTableToPoint_management(input_csv, point_feature, longitude_field, latitude_field, '', initial_projection)
+    arcpy.management.XYTableToPoint(input_csv, point_feature, longitude_field, latitude_field, '', initial_projection)
     # End timing
     iteration_end = time.time()
     iteration_elapsed = int(iteration_end - iteration_start)
@@ -70,13 +69,13 @@ def project_xy_table(**kwargs):
     iteration_start = time.time()
     print(f'\tProjecting xy coordinates...')
     # Project xy coordinates
-    arcpy.Project_management(point_feature, output_feature, target_projection, transformation, initial_projection, '', '', '')
+    arcpy.management.Project(point_feature, output_feature, target_projection, transformation, initial_projection, '', '', '')
     # Remove old coordinates and add new coordinates
-    arcpy.DeleteField_management(output_feature, [longitude_field, latitude_field])
-    arcpy.AddXY_management(output_feature)
+    arcpy.management.DeleteField(output_feature, [longitude_field, latitude_field])
+    arcpy.management.AddXY(output_feature)
     # Delete point feature if it exists
     if arcpy.Exists(point_feature) == 1:
-        arcpy.Delete_management(point_feature)
+        arcpy.management.Delete(point_feature)
     # End timing
     iteration_end = time.time()
     iteration_elapsed = int(iteration_end - iteration_start)

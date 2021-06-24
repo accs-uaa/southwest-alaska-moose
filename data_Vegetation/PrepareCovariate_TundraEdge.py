@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------------
-# Prepare tussock tundra edge covariate
+# Prepare tundra edge covariate
 # Author: Timm Nawrocki
-# Last Updated: 2021-05-27
+# Last Updated: 2021-06-22
 # Usage: Must be executed in an ArcGIS Pro Python 3.6 installation.
-# Description: "Prepare tussock tundra covariate" calculates the minimum inverse density-weighted distance from the cover of Eriophorum vaginatum.
+# Description: "Prepare tundra covariate" calculates the minimum inverse density-weighted distance from the cover of Eriophorum vaginatum, Dryas Dwarf Shrubs, and Barren from the NLCD 2016.
 # ---------------------------------------------------------------------------
 
 # Import packages
@@ -13,6 +13,7 @@ import os
 from package_GeospatialProcessing import arcpy_geoprocessing
 from package_GeospatialProcessing import calculate_idw_distance
 from package_GeospatialProcessing import create_minimum_raster
+from package_GeospatialProcessing import sum_rasters
 
 # Set root directory
 drive = 'N:/'
@@ -25,12 +26,37 @@ work_geodatabase = os.path.join(data_folder, 'Moose_SouthwestAlaska.gdb')
 # Define input rasters
 study_area = os.path.join(data_folder, 'Data_Input/southwestAlaska_StudyArea.tif')
 raster_erivag = os.path.join(data_folder, 'Data_Input/vegetation/erivag.tif')
+raster_dryas = os.path.join(data_folder, 'Data_Input/vegetation/dryas.tif')
+raster_barren = os.path.join(data_folder, 'Data_Input/vegetation/barren.tif')
 
 # Define output raster
-tussock_edge = os.path.join(data_folder, 'Data_Input/edge_distance/southwestAlaska_TussockTundraEdge.tif')
+raster_tundracover = os.path.join(data_folder, 'Data_Input/vegetation/TundraCover.tif')
+tundra_edge = os.path.join(data_folder, 'Data_Input/edge_distance/southwestAlaska_TundraEdge.tif')
 
-# Define a maximum foliar cover value from the Eriophorum vaginatum cover raster
-maximum_cover = int(arcpy.GetRasterProperties_management(raster_erivag, 'MAXIMUM').getOutput(0))
+# Create tundra cover raster if it does not already exist
+if arcpy.Exists(raster_tundracover) == 0:
+    # Define input and output arrays
+    sum_inputs = [study_area, raster_erivag, raster_dryas, raster_barren]
+    sum_outputs = [raster_tundracover]
+
+    # Create key word arguments
+    sum_kwargs = {'work_geodatabase': work_geodatabase,
+                  'input_array': sum_inputs,
+                  'output_array': sum_outputs
+                  }
+
+    # Sum tundra cover rasters
+    print('Summing tundra cover rasters...')
+    arcpy_geoprocessing(sum_rasters, **sum_kwargs)
+    print('----------')
+else:
+    print('Tundra cover raster already exists.')
+    print('----------')
+
+# Define a maximum foliar cover value from the tundra cover raster
+maximum_cover = int(arcpy.GetRasterProperties_management(raster_tundracover, 'MAXIMUM').getOutput(0))
+print(f'Maximum cover value is {maximum_cover}%.')
+print('----------')
 
 # Iterate through all possible cover values greater than or equal to 10% and calculate the inverse density-weighted distance for that value
 n = 10
@@ -44,9 +70,18 @@ while n <= maximum_cover:
 
     # Calculate edge raster if it does not already exist
     if arcpy.Exists(edge_raster) == 0:
-        try:
+
+        # Determine if the number of cells for target value
+        values = {}
+        with arcpy.da.SearchCursor(raster_tundracover, ['VALUE', 'COUNT']) as rows:
+            for row in rows:
+                values[row[0]] = row[1]
+        count = values.get(n, 0)
+
+        # If number of cells is greater than zero, perform edge calculation
+        if count > 0:
             # Define input and output arrays
-            edge_inputs = [raster_erivag]
+            edge_inputs = [study_area, raster_tundracover]
             edge_outputs = [edge_raster]
 
             # Create key word arguments
@@ -60,7 +95,7 @@ while n <= maximum_cover:
             print(f'Calculating inverse density weighted distance where foliar cover = {n}%...')
             arcpy_geoprocessing(calculate_idw_distance, **edge_kwargs)
             print('----------')
-        except:
+        else:
             print(f'Foliar cover never equals {n}% cover.')
             print('----------')
     else:
@@ -77,7 +112,7 @@ while n <= maximum_cover:
 
 # Define input and output arrays
 minimum_inputs = [study_area] + edge_rasters
-minimum_outputs = [tussock_edge]
+minimum_outputs = [tundra_edge]
 
 # Create key word arguments
 minimum_kwargs = {'cell_size': 10,

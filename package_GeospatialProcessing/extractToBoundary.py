@@ -77,7 +77,7 @@ def extract_to_boundary(**kwargs):
 
     # Determine raster type and no data value
     no_data_value = Raster(input_raster).noDataValue
-    type_number = arcpy.GetRasterProperties_management(input_raster, 'VALUETYPE').getOutput(0)
+    type_number = arcpy.management.GetRasterProperties(input_raster, 'VALUETYPE').getOutput(0)
     value_types = ['1_BIT',
                    '2_BIT',
                    '4_BIT',
@@ -92,7 +92,7 @@ def extract_to_boundary(**kwargs):
     value_type = value_types[int(type_number)]
     print(f'\tSaving extracted raster to disk as {value_type} raster with NODATA value of {no_data_value}...')
     # Save extracted raster to disk
-    arcpy.CopyRaster_management(final_raster,
+    arcpy.management.CopyRaster(final_raster,
                                 output_raster,
                                 '',
                                 '',
