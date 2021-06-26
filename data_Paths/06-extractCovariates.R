@@ -69,7 +69,7 @@ print(end[3])
 # Convert field names to standard
 path_extracted = path_extracted %>%
   dplyr::rename(forest_edge = southwestAlaska_ForestEdge) %>%
-  dplyr::rename(tundra_edge = southwestAlaska_TussockTundraEdge)
+  dplyr::rename(tundra_edge = southwestAlaska_TundraEdge)
 
 # Export data as a csv
 write.csv(path_extracted, file = output_csv, fileEncoding = 'UTF-8')

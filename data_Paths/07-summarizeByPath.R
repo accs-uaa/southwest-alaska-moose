@@ -11,7 +11,7 @@ git_dir <- "C:/ACCS_Work/GitHub/southwest-alaska-moose/package_Paths/"
 source(paste0(git_dir,"init.R"))
 
 paths <- read_csv(paste(pipeline_dir, "06-extractCovariates",
-                         "allPaths_extracted.csv",
+                         "allPoints_extractedCovariates.csv",
                          sep="/"))
 
 # Define output csv file ----

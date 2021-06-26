@@ -21,12 +21,12 @@ source(paste0(git_dir,"init.R"))
 
 calf <- read_csv(file=paste(pipeline_dir,
                              "01-dataPrepForAnalyses",
-                             "allPaths_calf.csv",
+                             "allPaths_calves.csv",
                              sep="/"))
 
 no_calf <- read_csv(file=paste(pipeline_dir,
                              "01-dataPrepForAnalyses",
-                             "allPaths_no_calf.csv",
+                             "allPaths_no_calves.csv",
                              sep="/"))
 
 
@@ -42,7 +42,7 @@ output_no_calf <- paste(output_dir,
 #### Run models ----
 
 # Paths with calves
-model_summary <- summary(survival::clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_mean + tundra_edge_mean + alnus_mean + salshr_mean + strata(mooseYear_id), data = calf))
+model_summary <- summary(survival::clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_scaled + tundra_edge_scaled + alnus_mean + salshr_mean + strata(mooseYear_id), data = calf))
 
 model_table <- data.frame(row.names=1:length(dimnames(model_summary$coefficients)[[1]]))
 model_table$variable <- dimnames(model_summary$coefficients)[[1]]
@@ -56,7 +56,7 @@ knitr::kable(model_table)
 write_csv(model_table, file=output_calf)
 
 # Paths without calves
-model_summary <- summary(survival::clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_mean + tundra_edge_mean + alnus_mean + salshr_mean + strata(mooseYear_id), data = no_calf))
+model_summary <- summary(survival::clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_scaled + tundra_edge_scaled + alnus_mean + salshr_mean + strata(mooseYear_id), data = no_calf))
 
 model_table <- data.frame(row.names=1:length(dimnames(model_summary$coefficients)[[1]]))
 model_table$variable <- dimnames(model_summary$coefficients)[[1]]
