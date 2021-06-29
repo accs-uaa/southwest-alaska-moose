@@ -11,19 +11,18 @@
 root_folder = 'N://ACCS_Work/Projects/WildlifeEcology/Moose_SouthwestAlaska/Data/Data_Output/'
 
 # Set map class folder
-map_class = 'NoCalf_RF'
-name = 'NoCalf'
+map_class = 'NoCalf'
 
 # Define input folder
 input_folder = paste(root_folder,
-                      'predicted_rasters',
+                      'predicted_rasters/round_20210629',
                       map_class,
                       sep = '/'
                       )
 
 # Define output folder
 output_folder = paste(root_folder,
-                      'rasters_final',
+                      'rasters_final/round_20210629',
                       map_class,
                       sep = '/'
                       )
@@ -31,8 +30,8 @@ output_folder = paste(root_folder,
 # Define output file
 output_file = paste(output_folder, 
                     '/',
-                    'SouthwestAlaska_Moose_',
-                    name,
+                    'SouthwestAlaska_Moose_Calving_',
+                    map_class,
                     '.tif',
                     sep = '')
 

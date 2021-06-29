@@ -54,7 +54,7 @@ else:
     print('----------')
 
 # Define a maximum foliar cover value from the tundra cover raster
-maximum_cover = int(arcpy.GetRasterProperties_management(raster_tundracover, 'MAXIMUM').getOutput(0))
+maximum_cover = int(arcpy.management.GetRasterProperties(raster_tundracover, 'MAXIMUM').getOutput(0))
 print(f'Maximum cover value is {maximum_cover}%.')
 print('----------')
 

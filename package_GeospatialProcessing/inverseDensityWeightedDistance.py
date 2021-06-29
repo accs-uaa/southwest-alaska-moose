@@ -93,7 +93,7 @@ def calculate_idw_distance(**kwargs):
     iteration_start = time.time()
     print(f'\tSaving edge raster to disk...')
     # Save the summed raster to disk
-    arcpy.CopyRaster_management(edge_raster,
+    arcpy.management.CopyRaster(edge_raster,
                                 output_raster,
                                 '',
                                 '',
