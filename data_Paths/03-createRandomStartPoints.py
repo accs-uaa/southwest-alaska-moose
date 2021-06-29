@@ -1,8 +1,8 @@
 # ---------------------------------------------------------------------------
 # Create random start points.
 # Author: A. Droghini (adroghini@alaska.edu), Alaska Center for Conservation Science
-# Description: Generates 100 random points within the convex hull polygons that we created (coarsely representing the annual home range of individual female moose).
-# Purpose: We'll use these points as starting locations for generating random paths. We'll compare the vegetation and topographical covariates of these random paths to covariates of observed paths.
+# Description: Generates 500 random points within the convex hull polygons that we created (coarsely representing the home range of individual female moose).
+# Purpose: We'll use these points as starting locations for generating random paths.
 # ---------------------------------------------------------------------------
 
 # Import packages
@@ -23,10 +23,10 @@ arcpy.env.workspace = geodatabase
 # Define inputs
 input_projection = 3338
 boundaries = "convexHulls"
-number_of_pts = 100
+number_of_pts = 500
 pts_join_field = "CID" # default name created by CreateRandomPoints function
 boundaries_join_field = "OBJECTID"
-field_list = ["mooseYear"]
+field_list = ["deployment_id"]
 
 #  Define outputs
 output_name = "randomStartPts"

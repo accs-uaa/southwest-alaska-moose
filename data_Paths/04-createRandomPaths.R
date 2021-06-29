@@ -13,9 +13,10 @@ source(paste0(git_dir,"init.R"))
 source(paste0(git_dir,"function-createRandomPaths.R"))
 
 #### Load data ----
-load(file=paste0(pipeline_dir,"04-formatForCalvingSeason/","gpsCalvingSeason.Rdata"))
-load(file=paste0(pipeline_dir,"01-generateDistributions/",
-                 "theoreticalDistributions.Rdata"))
+load(file=paste(pipeline_dir,"04-formatForCalvingSeason","gpsCalvingSeason.Rdata",sep="/"))
+load(file=paste(pipeline_dir,"01-generateDistributions",
+                 "theoreticalDistributions.Rdata",
+                sep="/"))
 
 # Random starting points
 randomPoints <- readOGR(dsn=geoDB,layer="randomStartPts")
@@ -121,8 +122,9 @@ allPaths <- rbind.fill(calvingSeason,randomPaths)
 #### Export data ----
 # To verify results in GIS
 # Projection is EPSG = 3338, NAD 83 Alaska Albers
-write_csv(allPaths,file=paste0(pipeline_dir, "04-createRandomPaths/",
-                               "allPaths.csv"))
+write_csv(allPaths,file=paste(pipeline_dir, "04-createRandomPaths",
+                               "allPaths.csv",
+                              sep="/"))
 
 # Clear workspace
 rm(list=ls())

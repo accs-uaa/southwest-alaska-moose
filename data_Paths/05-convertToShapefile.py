@@ -37,3 +37,5 @@ initial_projection = arcpy.SpatialReference(input_projection)
 # Convert csv to shapefile
 arcpy.MakeXYEventLayer_management(input_csv, x_coords, y_coords, output_layer, spatial_reference=initial_projection)
 arcpy.conversion.FeatureClassToFeatureClass(in_features=output_layer, out_path=geodatabase, out_name=output_shapefile)
+
+print("Complete converting to shapefile.")

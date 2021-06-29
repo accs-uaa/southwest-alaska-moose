@@ -36,7 +36,7 @@ hydrography_folder = paste(input_dir,
 # Define output csv file
 output_csv = paste(pipeline_dir,
                    '06-extractCovariates',
-                   'allPoints_extractedCovariates',
+                   'allPoints_extractedCovariates.csv',
                    sep = '/')
 
 # Create a list of all predictor rasters
