@@ -21,12 +21,12 @@ source(paste0(git_dir,"init.R"))
 
 calf <- read_csv(file=paste(pipeline_dir,
                              "01-dataPrepForAnalyses",
-                             "allPaths_calves.csv",
+                             "paths_calves.csv",
                              sep="/"))
 
 no_calf <- read_csv(file=paste(pipeline_dir,
                              "01-dataPrepForAnalyses",
-                             "allPaths_no_calves.csv",
+                             "paths_no_calves.csv",
                              sep="/"))
 
 

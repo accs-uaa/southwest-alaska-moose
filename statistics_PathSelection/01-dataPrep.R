@@ -1,4 +1,4 @@
-# Obj: Create new CSV files for analysis to avoid having to 
+# Objective: Create simple queries / subsets from main data file to avoid having to recreate them at the start of every analysis.
 
 # Author: A. Droghini (adroghini@alaska.edu)
 
@@ -12,21 +12,22 @@ source(paste0(git_dir,"init.R"))
 
 paths <- read_csv(file=paste(pipeline_dir,
                              "07-summarizeByPath",
-                             "allPaths_meanCovariates.csv",
+                             "paths_meanCovariates_explanatory.csv",
                              sep="/"))
 
 ##### Define output csv files
 output_scale <- paste(pipeline_dir,
                      "01-dataPrepForAnalyses",
-                     "allPaths_meanCovariates_scaled.csv", sep="/")
+                     "paths_meanCovariates_scaled.csv", sep="/")
 
 output_calf <- paste(pipeline_dir,
                       "01-dataPrepForAnalyses",
-                      "allPaths_calves.csv", sep="/")
+                      "paths_calves.csv", sep="/")
 
 output_no_calf <- paste(pipeline_dir,
                       "01-dataPrepForAnalyses",
-                      "allPaths_no_calves.csv", sep="/")
+                      "paths_no_calves.csv", sep="/")
+
 ### Standardize variables ----
 # Convert edge variables so that all covariates are on a similar scale
 # Original distance and topographic units are in meters

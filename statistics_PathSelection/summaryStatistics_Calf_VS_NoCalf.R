@@ -13,12 +13,12 @@ source(paste0(git_dir,"init.R"))
 # Load data
 calf <- read_csv(file=paste(pipeline_dir,
                             "01-dataPrepForAnalyses",
-                            "allPaths_calves.csv",
+                            "paths_calves.csv",
                             sep="/"))
 
 no_calf <- read_csv(file=paste(pipeline_dir,
                                "01-dataPrepForAnalyses",
-                               "allPaths_no_calves.csv",
+                               "paths_no_calves.csv",
                                sep="/"))
 
 # Define output csv
@@ -68,16 +68,16 @@ summary_table <- left_join(calf_summary,no_calf_summary,by="name")
 # Final formatting ----
 
 summary_table <- summary_table %>% 
-  dplyr::rename(Variable = name) %>% 
+  dplyr::rename(Covariate = name) %>% 
   dplyr::mutate(Units = c("Meters","Meters","Meters","Meters","Percent foliar cover","Percent foliar cover"),
                 median_calf = as.numeric(median_calf),
                 st_dev_calf = as.numeric(st_dev_calf),
                 median_no_calf = as.numeric(median_no_calf),
                 st_dev_no_calf = as.numeric(st_dev_no_calf)) %>% 
-  dplyr::select(Variable,Units,everything())
+  dplyr::select(Covariate,Units,everything())
   
 # Relabel variables
-summary_table$Variable <- summary_table$Variable %>% 
+summary_table$Covariate <- summary_table$Covariate %>% 
   sub(pattern="_mean",replacement="") %>% 
   sub(pattern="_edge",replacement=" Edge") %>% 
   sub(pattern="salshr",replacement="Salix Shrub") %>% 
