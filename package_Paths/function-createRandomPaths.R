@@ -33,10 +33,16 @@ for (i in 1:length(ids)) {
   idYearCalf <- ids[i]
   pathInfo_id <- subset(pathInfo, idYearStatus == idYearCalf)
   idOnly <- str_split(idYearCalf,pattern="_")[[1]][1]
-  startPoints <- subset(randomPoints, deployment_id == idOnly)
   length <- pathInfo_id$length  
   status <- pathInfo_id$status
   numberOfPaths <- pathInfo_id$numberOfPaths
+  
+  # Randomly sample start points from set of random points
+  startPoints <- subset(randomPoints, deployment_id == idOnly)
+  startPoints$id <- seq(from=1, to=nrow(startPoints), by=1)
+  random_ids <- sample(startPoints$id, size = numberOfPaths, replace = FALSE)
+  startPoints <- subset(startPoints, id %in% random_ids)
+
   
   # Start ticker for number of paths
   # Cycle through as many random start points as the number of paths specified
