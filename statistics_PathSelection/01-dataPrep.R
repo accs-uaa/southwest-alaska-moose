@@ -12,7 +12,7 @@ source(paste0(git_dir,"init.R"))
 
 paths <- read_csv(file=paste(pipeline_dir,
                              "07-summarizeByPath",
-                             "paths_meanCovariates_explanatory.csv",
+                             "paths_meanCovariates.csv",
                              sep="/"))
 
 ##### Define output csv files

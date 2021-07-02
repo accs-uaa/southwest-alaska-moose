@@ -15,13 +15,9 @@ paths <- read_csv(paste(pipeline_dir, "06-extractCovariates",
                          sep="/"))
 
 # Define output csv file ----
-output_explain = paste(pipeline_dir,
+output_csv = paste(pipeline_dir,
                        "07-summarizeByPath",
-                       "paths_meanCovariates_explanatory.csv", sep="/")
-
-output_predict = paste(pipeline_dir,
-                   "07-summarizeByPath",
-                   "paths_meanCovariates_predictive.csv", sep="/")
+                       "paths_meanCovariates.csv", sep="/")
 
 #### Exclude data outisde of study area ----
 
@@ -69,9 +65,9 @@ meanPaths %>% dplyr::filter(response=="1") %>%
 
 # Mean number of points in lake for observed paths is 0.338, max 3 # of points are 9, 6, 2.
 
-# Exclude random paths that have more than 3 points in a lake 
+# Exclude random paths that have more than 1 point in a lake 
 allRandomPaths <- meanPaths %>% 
-  dplyr::filter(response=="0" & lake_sum <= 3) %>%
+  dplyr::filter(response=="0" & lake_sum <= 1) %>%
   group_by(mooseYear_id)
 
 # Check max # of points in a lake
@@ -85,8 +81,6 @@ allRandomPaths <- allRandomPaths %>%
 #### Select 10 random paths---
 
 # For explanatory models
-set.seed(314)
-
 tenRandomPaths <- allRandomPaths %>% 
   dplyr::sample_n(10)
 
@@ -95,21 +89,14 @@ tenRandomPaths %>%
   dplyr::count(mooseYear_id) %>% 
   filter (n!=10)
 
-# Create final explanatory dataset that includes 10 random paths and 1 observed path
+# Create final dataset that includes 10 random paths and 1 observed path
 # Should have 880 rows (80 observed + 80*10 random)
-allPaths_explanatory <- meanPaths %>% 
+allPaths <- meanPaths %>% 
   dplyr::filter(response=="1") %>% 
   dplyr::select(-c(lake_mean,lake_sum)) %>% 
   rbind(tenRandomPaths)
 
-# Create final predictive dataset that includes all random paths
-allPaths_predict <- meanPaths %>% 
-  dplyr::filter(response=="1") %>% 
-  dplyr::select(-c(lake_mean,lake_sum)) %>% 
-  rbind(allRandomPaths)
-
 #### Export data ----
-write_csv(allPaths_explanatory, file= output_explain)
-write_csv(allPaths_predict, file= output_predict)
+write_csv(allPaths, file= output_csv)
 
 rm(list=ls())
