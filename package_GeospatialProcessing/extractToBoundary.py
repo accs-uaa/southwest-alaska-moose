@@ -11,7 +11,7 @@
 def extract_to_boundary(**kwargs):
     """
     Description: extracts a raster to a boundary
-    Inputs: 'no_data_replace' -- a value to replace no data values
+    Inputs: 'no_data_replace' -- a value to replace no data values (optional)
             'work_geodatabase' -- path to a file geodatabase that will serve as the workspace
             'input_array' -- an array containing the target raster to extract (must be first), the boundary feature class or raster (must be second), and the study area raster (must be third)
             'output_array' -- an array containing the output raster
@@ -42,9 +42,10 @@ def extract_to_boundary(**kwargs):
     # Set workspace
     arcpy.env.workspace = work_geodatabase
 
-    # Set snap raster and extent
+    # Set snap raster, extent, and cell size
     arcpy.env.snapRaster = study_area
     arcpy.env.extent = Raster(study_area).extent
+    arcpy.env.cellSize = "MINOF"
 
     # Start timing function
     print('\tExtracting raster to boundary dataset...')
@@ -60,20 +61,25 @@ def extract_to_boundary(**kwargs):
         f'\tCompleted at {iteration_success_time.strftime("%Y-%m-%d %H:%M")} (Elapsed time: {datetime.timedelta(seconds=iteration_elapsed)})')
     print('\t----------')
 
-    # Start timing function
-    print(f'\tConverting no data values to {no_data_replace}...')
-    iteration_start = time.time()
-    # Convert no data values to data
-    nonull_raster = Con(IsNull(Raster(extracted_raster)), no_data_replace, Raster(extracted_raster))
-    final_raster = ExtractByMask(nonull_raster, study_area)
-    # End timing
-    iteration_end = time.time()
-    iteration_elapsed = int(iteration_end - iteration_start)
-    iteration_success_time = datetime.datetime.now()
-    # Report success
-    print(
-        f'\tCompleted at {iteration_success_time.strftime("%Y-%m-%d %H:%M")} (Elapsed time: {datetime.timedelta(seconds=iteration_elapsed)})')
-    print('\t----------')
+    # Convert no data values to data if no_data_replace is not null
+    if no_data_replace != '':
+        # Start timing function
+        print(f'\tConverting no data values to {no_data_replace}...')
+        iteration_start = time.time()
+        # Covert no data values to data
+        nonull_raster = Con(IsNull(Raster(extracted_raster)), no_data_replace, Raster(extracted_raster))
+        final_raster = ExtractByMask(nonull_raster, study_area)
+        # End timing
+        iteration_end = time.time()
+        iteration_elapsed = int(iteration_end - iteration_start)
+        iteration_success_time = datetime.datetime.now()
+        # Report success
+        print(f'\tCompleted at {iteration_success_time.strftime("%Y-%m-%d %H:%M")} (Elapsed time: {datetime.timedelta(seconds=iteration_elapsed)})')
+        print('\t----------')
+    elif no_data_replace == '':
+        final_raster = extracted_raster
+        print('\tConversion of no data values not required.')
+        print('\t----------')
 
     # Determine raster type and no data value
     no_data_value = Raster(input_raster).noDataValue
