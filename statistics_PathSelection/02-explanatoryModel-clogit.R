@@ -16,9 +16,12 @@ rm(list=ls())
 # Define Git directory ----
 git_dir <- "C:/ACCS_Work/GitHub/southwest-alaska-moose/package_Statistics/"
 
-#### Load packages and data ----
+# Load packages ----
 source(paste0(git_dir,"init.R"))
+source(paste0(git_dir,"function-createTable.R"))
+source(paste0(git_dir,"function-confInterval.R"))
 
+# Load data ----
 calf <- read_csv(file=paste(pipeline_dir,
                              "01-dataPrepForAnalyses",
                              "paths_calves.csv",
@@ -30,7 +33,7 @@ no_calf <- read_csv(file=paste(pipeline_dir,
                              sep="/"))
 
 
-##### Define output csv files
+# Define output csv files ----
 output_calf <- paste(output_dir,
                                   "pathSelectionFunction",
                                   "clogit_results_calf.csv", sep="/")
@@ -39,31 +42,124 @@ output_no_calf <- paste(output_dir,
                                   "pathSelectionFunction",
                                   "clogit_results_no_calf.csv", sep="/")
 
-#### Run models ----
+# Run model ----
 
 # Paths with calves
-model_summary <- summary(survival::clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_scaled + tundra_edge_scaled + alnus_mean + salshr_mean + strata(mooseYear_id), data = calf))
+model_fit <- survival::clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_km + tundra_edge_km + alnus_mean + salshr_mean + strata(mooseYear_id), data = calf)
 
-model_table <- data.frame(row.names=1:length(dimnames(model_summary$coefficients)[[1]]))
-model_table$variable <- dimnames(model_summary$coefficients)[[1]]
-model_table$coef <- model_summary$coefficients[,1]
-model_table$exp_coef <- model_summary$coefficients[,2]
-model_table$SE <- model_summary$coefficients[,3]
-model_table$p_values <- p.adjust(model_summary$coefficients[,5], method = "BY")
+model_summary <- summary(model_fit, conf.int = 0.95)
+
+# Create table ----
+# Apply B-Y correction to p-value
+model_table <- createTable(model_summary, correct = "BY")
+
+## Recalculate OR ----
+
+# For foliar cover covariates to place them on a more meaningful scale
+# Multiply coefficient by 10 so that the odds is interpreted in terms of a 10% increase in foliar cove
+model_table <- model_table %>%
+  mutate(exp_coef = case_when (
+    covariate == "alnus_mean" |
+      covariate == "salshr_mean" ~ exp(coef * 10),
+    TRUE ~ exp_coef
+  ))
+
+## Recalculate 95% CI ----
+
+# For Alnus
+sp <- which(model_table$covariate == "alnus_mean")
+beta_sp <- model_table[sp,2] * 10
+se_sp <- model_table[sp,3] * 10
+model_table[sp,5] <- as.numeric(conf_int(beta = beta_sp, se = se_sp)[1])
+model_table[sp,6] <- as.numeric(conf_int(beta = beta_sp, se = se_sp)[2])
+
+# For Salix
+sp <- which(model_table$covariate == "salshr_mean")
+beta_sp <- model_table[sp,2] * 10
+se_sp <- model_table[sp,3] * 10
+model_table[sp,5] <- as.numeric(conf_int(beta = beta_sp, se = se_sp)[1])
+model_table[sp,6] <- as.numeric(conf_int(beta = beta_sp, se = se_sp)[2])
+
+# Format table ----
+
+# Round values
+# p-value = 0 if p < 0.01
+model_table <- as.data.frame(cbind(model_table[,1],sapply(model_table[,2:7], FUN = round, digits = 3)))
+
+model_table <- model_table %>% mutate("95% CI" = paste(lower_95,upper_95,sep=", "), p_value = case_when(p_value == "0" ~ "<0.001",
+                                      TRUE ~ as.character(p_value)))
+
+# Rename columns
+# Drop Std. Err. (presenting 95% CI instead)
+model_table <- model_table %>% 
+  dplyr::select(-c(SE,lower_95,upper_95)) %>% 
+  rename(Covariate = V1,
+         Coefficient = coef,
+         "Odds Ratio" = exp_coef,
+         "p-value" = p_value) %>% 
+  dplyr::select("Covariate","Coefficient","Odds Ratio","95% CI","p-value")
+
 
 knitr::kable(model_table)
 
+# Export table ----
 write_csv(model_table, file=output_calf)
 
 # Paths without calves
-model_summary <- summary(survival::clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_scaled + tundra_edge_scaled + alnus_mean + salshr_mean + strata(mooseYear_id), data = no_calf))
+model_fit <- survival::clogit(formula = response ~ elevation_mean + roughness_mean + forest_edge_km + tundra_edge_km + alnus_mean + salshr_mean + strata(mooseYear_id), data = no_calf)
 
-model_table <- data.frame(row.names=1:length(dimnames(model_summary$coefficients)[[1]]))
-model_table$variable <- dimnames(model_summary$coefficients)[[1]]
-model_table$coef <- model_summary$coefficients[,1]
-model_table$exp_coef <- model_summary$coefficients[,2]
-model_table$SE <- model_summary$coefficients[,3]
-model_table$p_values <- p.adjust(model_summary$coefficients[,5], method = "BY")
+model_summary <- summary(model_fit, conf.int = 0.95)
+
+# Create table ----
+# Apply B-Y correction to p-value
+model_table <- createTable(model_summary, correct = "BY")
+
+## Recalculate OR ----
+
+# For foliar cover covariates to place them on a more meaningful scale
+# Multiply coefficient by 10 so that the odds is interpreted in terms of a 10% increase in foliar cove
+model_table <- model_table %>%
+  mutate(exp_coef = case_when (
+    covariate == "alnus_mean" |
+      covariate == "salshr_mean" ~ exp(coef * 10),
+    TRUE ~ exp_coef
+  ))
+
+## Recalculate 95% CI ----
+
+# For Alnus
+sp <- which(model_table$covariate == "alnus_mean")
+beta_sp <- model_table[sp,2] * 10
+se_sp <- model_table[sp,3] * 10
+model_table[sp,5] <- as.numeric(conf_int(beta = beta_sp, se = se_sp)[1])
+model_table[sp,6] <- as.numeric(conf_int(beta = beta_sp, se = se_sp)[2])
+
+# For Salix
+sp <- which(model_table$covariate == "salshr_mean")
+beta_sp <- model_table[sp,2] * 10
+se_sp <- model_table[sp,3] * 10
+model_table[sp,5] <- as.numeric(conf_int(beta = beta_sp, se = se_sp)[1])
+model_table[sp,6] <- as.numeric(conf_int(beta = beta_sp, se = se_sp)[2])
+
+# Format table ----
+
+# Round values
+# p-value = 0 if p < 0.01
+model_table <- as.data.frame(cbind(model_table[,1],sapply(model_table[,2:7], FUN = round, digits = 3)))
+
+model_table <- model_table %>% mutate("95% CI" = paste(lower_95,upper_95,sep=", "), p_value = case_when(p_value == "0" ~ "<0.001",
+                                                                                                        TRUE ~ as.character(p_value)))
+
+# Rename columns
+# Drop Std. Err. (presenting 95% CI instead)
+model_table <- model_table %>% 
+  dplyr::select(-c(SE,lower_95,upper_95)) %>% 
+  rename(Covariate = V1,
+         Coefficient = coef,
+         "Odds Ratio" = exp_coef,
+         "p-value" = p_value) %>% 
+  dplyr::select("Covariate","Coefficient","Odds Ratio","95% CI","p-value")
+
 
 knitr::kable(model_table)
 
