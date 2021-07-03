@@ -12,7 +12,7 @@ source(paste0(git_dir,"init.R"))
 
 paths <- read_csv(file=paste(pipeline_dir,
                              "07-summarizeByPath",
-                             "paths_meanCovariates_explanatory.csv",
+                             "paths_meanCovariates.csv",
                              sep="/"))
 
 ##### Define output csv files
@@ -31,11 +31,11 @@ output_no_calf <- paste(pipeline_dir,
 ### Standardize variables ----
 # Convert edge variables so that all covariates are on a similar scale
 # Original distance and topographic units are in meters
-# Express distance units as 1/10 of a km instead
+# Express distance units in km instead
 
 paths_scale <- paths %>% 
-  mutate(forest_edge_scaled = forest_edge_mean/100,
-         tundra_edge_scaled = tundra_edge_mean/100)
+  mutate(forest_edge_km = forest_edge_mean/1000,
+         tundra_edge_km = tundra_edge_mean/1000)
 
 write_csv(paths_scale, file=output_scale)
 
