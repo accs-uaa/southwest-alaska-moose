@@ -11,17 +11,17 @@
 root_folder = 'N://ACCS_Work/Projects/WildlifeEcology/Moose_SouthwestAlaska/Data/Data_Output/'
 
 # Set map class folder
-map_class = 'NoCalf'
+map_class = 'Calf'
 
 # Define input folder
 prediction_folder = paste(root_folder,
-                          'predicted_tables/round_20210629',
+                          'predicted_tables/round_20210702',
                           map_class,
                           sep = '/'
                           )
 # Define output folder
 raster_folder = paste(root_folder,
-                      'predicted_rasters/round_20210629',
+                      'predicted_rasters/round_20210702',
                       map_class,
                       sep = '/'
                       )
